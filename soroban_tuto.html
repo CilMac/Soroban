@@ -1,0 +1,2069 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>そろばん — Guide & Tutoriel</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700&family=Shippori+Mincho:wght@400;700&family=DM+Serif+Display:ital@0;1&display=swap');
+
+  :root {
+    --bg:       #d6c9b0;
+    --ink:      #1a1008;
+    --wood-mid: #c8854a;
+    --wood-lt:  #e0a060;
+    --green:    #2a7a50;
+    --red:      #c0392b;
+    --panel:    rgba(248,242,230,0.96);
+    --accent:   #c8854a;
+    --border:   rgba(100,60,20,.18);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* ── SAFE AREA (iPhone/iPad avec encoche ou coins arrondis) ── */
+  body {
+    padding-left:  env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* ── BANDEAU ROTATION (iPad mini et petits écrans en paysage) ── */
+  #landscape-warning { display: none; }
+  @media (orientation: landscape) and (max-height: 800px) {
+    #landscape-warning {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: rgba(42,26,12,0.93);
+      color: #e0b870;
+      font-family: 'Shippori Mincho', serif;
+      font-size: .85rem;
+      padding: 10px 16px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      border-bottom: 1px solid rgba(200,133,74,.3);
+    }
+  }
+
+  body {
+    background: #d6c9b0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.18'/%3E%3C/svg%3E");
+    color: var(--ink);
+    font-family: 'Shippori Mincho', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    text-align: center;
+    padding: 22px 16px 12px;
+    border-bottom: 1px solid rgba(100,60,20,.15);
+    position: relative;
+  }
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.4rem, 5vw, 2.2rem);
+    color: #3a2010;
+    letter-spacing: .15em;
+    text-shadow: 0 1px 4px rgba(0,0,0,.12);
+  }
+  header .jp {
+    font-family: 'Noto Serif JP', serif;
+    font-size: clamp(.7rem, 2.2vw, .9rem);
+    color: #7a6050;
+    letter-spacing: .35em;
+    margin-top: 4px;
+  }
+  .back-btn {
+    position: absolute;
+    left: 14px; top: 22px;
+    font-family: 'Shippori Mincho', serif;
+    background: #2a1a0c;
+    color: #e0b870;
+    border: 1px solid #1a0e06;
+    border-radius: 5px;
+    padding: 6px 12px;
+    font-size: .8rem;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,.3);
+    text-decoration: none;
+    display: inline-block;
+    transition: background .15s;
+  }
+  .back-btn:hover { background: #3a2414; color: #f0c880; }
+
+  /* ── NAV TABS ── */
+  .nav-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    padding: 14px 12px 10px;
+    border-bottom: 1px solid rgba(100,60,20,.12);
+    position: sticky;
+    top: 0;
+    background: rgba(214,201,176,.97);
+    backdrop-filter: blur(6px);
+    z-index: 100;
+  }
+  .tab-btn {
+    font-family: 'Shippori Mincho', serif;
+    background: rgba(0,0,0,.07);
+    border: 1px solid rgba(100,60,20,.2);
+    border-radius: 20px;
+    color: #5a3820;
+    padding: 5px 14px;
+    font-size: .78rem;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .tab-btn:hover { background: rgba(200,133,74,.15); border-color: var(--accent); }
+  .tab-btn.active {
+    background: #2a1a0c;
+    color: #e0b870;
+    border-color: #1a0e06;
+    box-shadow: 0 2px 8px rgba(0,0,0,.25);
+  }
+
+  /* ── ONGLETS DOCS EXTERNES ── */
+  .tab-btn.doc-ext {
+    background: rgba(42,26,12,.12);
+    border: 1px dashed rgba(100,60,20,.45);
+    color: #7a4a20;
+    font-style: italic;
+  }
+  .tab-btn.doc-ext:hover { background: rgba(200,133,74,.2); border-color: var(--accent); color: #3a1800; }
+  .tab-btn.doc-ext.active {
+    background: #4a2c10;
+    color: #f0d090;
+    border: 1px dashed #2a1408;
+    font-style: italic;
+  }
+
+  /* ── BANDEAU DOC EXTERNE ── */
+  .doc-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(42,26,12,.08);
+    border: 1px dashed rgba(100,60,20,.35);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 18px;
+    font-size: .78rem;
+    color: #7a4a20;
+    font-style: italic;
+  }
+  .doc-banner .doc-icon { font-size: 1.1rem; flex-shrink: 0; }
+  .doc-banner strong { color: #4a2408; font-style: normal; }
+
+  /* ── NOTICE : SOUS-SECTIONS ── */
+  .notice-part { display: none; }
+  .notice-part.active { display: block; animation: fadeUp .35s ease both; }
+
+  /* ── NOTICE : PART BADGE ── */
+  .part-badge {
+    display: inline-block;
+    background: #2a1a0c;
+    color: #e0b870;
+    font-family: 'Shippori Mincho', serif;
+    font-size: .9rem;
+    padding: 4px 14px;
+    border-radius: 12px;
+    letter-spacing: .08em;
+    margin-bottom: 14px;
+  }
+
+  /* ── NOTICE : BEAD GRID ── */
+  .bead-grid { display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0; justify-content: center; }
+  .bead-card { background: rgba(0,0,0,.05); border: 1px solid rgba(100,60,20,.15); border-radius: 8px; padding: 10px 12px; text-align: center; min-width: 70px; }
+  .bead-num { font-family: 'DM Serif Display', serif; font-size: 1.4rem; color: var(--accent); line-height: 1; }
+  .bead-desc { font-size: .72rem; color: #7a5030; margin-top: 4px; line-height: 1.4; }
+
+  /* ── NOTICE : EXAMPLE BOX ── */
+  .example-box {
+    background: rgba(200,133,74,.08);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 10px 14px;
+    margin: 10px 0;
+    font-size: .85rem;
+    color: #1a3a20;
+    line-height: 1.75;
+  }
+  .example-box strong { color: #0e2812; }
+
+  /* ── NOTICE : OP TABLE ── */
+  .op-table { width: 100%; border-collapse: collapse; font-size: .84rem; margin: 12px 0; overflow: hidden; border-radius: 8px; }
+  .op-table th { background: rgba(200,133,74,.2); color: #4a2008; font-family: 'DM Serif Display', serif; font-weight: 400; padding: 9px 12px; text-align: left; border-bottom: 1px solid rgba(200,133,74,.3); }
+  .op-table td { padding: 8px 12px; color: #2a1a0a; border-bottom: 1px solid rgba(100,60,20,.08); vertical-align: top; line-height: 1.6; }
+  .op-table tr:last-child td { border-bottom: none; }
+  .op-table tr:nth-child(even) td { background: rgba(0,0,0,.03); }
+
+  /* ── NOTICE : DIV LAYOUT (multiplication/division) ── */
+  .div-layout { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 14px 0; flex-wrap: wrap; }
+  .div-box { background: rgba(0,0,0,.06); border: 1px solid rgba(100,60,20,.18); border-radius: 8px; padding: 10px 16px; text-align: center; min-width: 80px; }
+  .div-box .db-label { font-size: .7rem; color: #9a6040; letter-spacing: .06em; margin-bottom: 4px; }
+  .div-box .db-val { font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: #3a1800; }
+  .div-sep { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: var(--accent); }
+
+  /* ── CONTENT ── */
+  .content { max-width: 680px; margin: 0 auto; padding: 24px 16px 60px; }
+
+  .section { display: none; }
+  .section.active { display: block; animation: fadeUp .35s ease both; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.1);
+  }
+  .card h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.15rem;
+    color: #6a3a14;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(200,133,74,.25);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: .95rem;
+    color: #5a3010;
+    margin: 14px 0 6px;
+  }
+  .card p {
+    font-size: .88rem;
+    color: #2a1a0a;
+    line-height: 1.75;
+    margin-bottom: 10px;
+    opacity: .88;
+  }
+  .card ul {
+    padding-left: 18px;
+    font-size: .88rem;
+    color: #2a1a0a;
+    line-height: 1.8;
+    opacity: .88;
+  }
+  .card li { margin-bottom: 3px; }
+
+  /* ── HIGHLIGHT BOX ── */
+  .highlight {
+    background: rgba(200,133,74,.1);
+    border: 1px solid rgba(200,133,74,.3);
+    border-radius: 8px;
+    padding: 12px 15px;
+    margin: 10px 0;
+    font-size: .85rem;
+    color: #5a3010;
+    line-height: 1.7;
+  }
+  .highlight strong { color: #3a1800; }
+
+  /* ── MINI SOROBAN SVG ── */
+  .mini-soroban-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 14px 0;
+  }
+  .mini-soroban-wrap svg {
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,.35));
+    border-radius: 6px;
+  }
+
+  /* ── BEAD INTERACTIVE DEMO ── */
+  .demo-zone {
+    background: rgba(0,0,0,.05);
+    border: 1px solid rgba(100,60,20,.15);
+    border-radius: 10px;
+    padding: 14px;
+    margin: 12px 0;
+    text-align: center;
+  }
+  .demo-label {
+    font-size: .78rem;
+    color: #7a5030;
+    margin-top: 8px;
+    font-style: italic;
+  }
+
+  /* ── COMPLEMENT TABLES ── */
+  .comp-table {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin: 12px 0;
+  }
+  .comp-cell {
+    background: var(--panel);
+    border: 1px solid rgba(200,133,74,.25);
+    border-radius: 8px;
+    padding: 10px 6px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .comp-cell:hover { background: rgba(200,133,74,.15); border-color: var(--accent); }
+  .comp-cell.active { background: rgba(200,133,74,.25); border-color: var(--accent); box-shadow: 0 2px 8px rgba(200,133,74,.3); }
+  .comp-cell .op { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: #3a2010; }
+  .comp-cell .eq { font-size: .72rem; color: #7a5030; margin-top: 2px; }
+
+  /* ── TECHNIQUE CARDS ── */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 10px 0;
+  }
+  @media (max-width: 480px) { .tech-grid { grid-template-columns: 1fr; } }
+  .tech-card {
+    background: rgba(0,0,0,.05);
+    border: 1px solid rgba(100,60,20,.15);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: .8rem;
+    color: #4a2c10;
+    line-height: 1.6;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .tech-card:hover { background: rgba(200,133,74,.1); }
+  .tech-card .tnum {
+    font-family: 'DM Serif Display', serif;
+    color: var(--accent);
+    font-size: .95rem;
+    margin-bottom: 2px;
+  }
+  .tech-card .tdesc { font-size: .75rem; color: #7a5030; margin-top: 4px; }
+
+  /* ── STEP SEQUENCE ── */
+  .step-seq {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 12px 0;
+  }
+  .step-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    background: rgba(0,0,0,.04);
+    border-radius: 8px;
+    border-left: 3px solid rgba(200,133,74,.4);
+    font-size: .85rem;
+    color: #3a2010;
+    line-height: 1.6;
+  }
+  .step-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    color: var(--accent);
+    min-width: 22px;
+    line-height: 1;
+    padding-top: 2px;
+  }
+
+  /* ── FEATURE BADGES ── */
+  .feature-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 10px 0;
+  }
+  .feature-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 11px 14px;
+    background: rgba(0,0,0,.04);
+    border-radius: 8px;
+    border: 1px solid rgba(100,60,20,.1);
+    font-size: .85rem;
+    line-height: 1.6;
+  }
+  .feature-icon { font-size: 1.3rem; min-width: 28px; text-align: center; }
+  .feature-title { font-family: 'DM Serif Display', serif; color: #5a3010; font-size: .9rem; }
+  .feature-desc { color: #4a2c10; font-size: .82rem; margin-top: 2px; opacity: .85; }
+
+  /* ── READING QUIZ ── */
+  .quiz-box {
+    background: rgba(200,133,74,.08);
+    border: 1px solid rgba(200,133,74,.25);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    margin: 12px 0;
+  }
+  .quiz-svg-wrap { margin: 10px auto; }
+  .quiz-input {
+    background: rgba(255,255,255,.7);
+    border: 1px solid rgba(100,60,20,.3);
+    color: #1a0a02;
+    border-radius: 6px;
+    padding: 7px 12px;
+    font-size: 1.1rem;
+    font-family: 'DM Serif Display', serif;
+    width: 130px;
+    text-align: center;
+    outline: none;
+    margin: 8px 4px;
+  }
+  .quiz-input:focus { border-color: var(--accent); }
+  .quiz-btn {
+    font-family: 'Shippori Mincho', serif;
+    background: #1a3a22; color: #5abf80;
+    border: 1px solid #0e2416;
+    border-radius: 5px;
+    padding: 7px 16px;
+    font-size: .85rem;
+    cursor: pointer;
+    margin: 4px;
+    transition: background .15s;
+  }
+  .quiz-btn:hover { background: #224a2c; }
+  .quiz-btn.secondary {
+    background: #2a1a0c; color: #e0b870;
+    border-color: #1a0e06;
+  }
+  .quiz-btn.secondary:hover { background: #3a2414; }
+  .quiz-feedback {
+    min-height: 1.5em;
+    font-size: .9rem;
+    font-weight: 700;
+    margin-top: 6px;
+  }
+  .quiz-feedback.ok  { color: var(--green); }
+  .quiz-feedback.err { color: var(--red); }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(100,60,20,.3); border-radius: 3px; }
+
+  /* ── WIKILIVRES LEÇONS ── */
+  .wiki-lecon { display: none; }
+  .wiki-lecon.active { display: block; animation: fadeUp .3s ease both; }
+</style>
+</head>
+<body>
+
+<div id="landscape-warning">
+  📱 Meilleure expérience en portrait
+</div>
+
+<header>
+  <a class="back-btn" href="index.html">← Soroban</a>
+  <h1>そろばん &nbsp;·&nbsp; Guide</h1>
+  <div class="jp">使い方 · Tutoriel</div>
+</header>
+
+<nav class="nav-tabs">
+  <button class="tab-btn active" onclick="showTab('intro')">🎋 Introduction</button>
+  <button class="tab-btn" onclick="showTab('anatomie')">🔍 Anatomie</button>
+  <button class="tab-btn" onclick="showTab('lire')">👁 Lire & Poser</button>
+  <button class="tab-btn" onclick="showTab('complements')">⚖️ Compléments</button>
+  <button class="tab-btn" onclick="showTab('techniques')">🎯 Techniques</button>
+  <button class="tab-btn" onclick="showTab('app')">📱 Cette App</button>
+  <button class="tab-btn doc-ext" onclick="showTab('wikilivres')">📚 Wikilivres</button>
+  <button class="tab-btn doc-ext" onclick="showTab('notice')">📄 Notice</button>
+</nav>
+
+<div class="content">
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- §1  INTRODUCTION                       -->
+  <!-- ══════════════════════════════════════ -->
+  <div class="section active" id="tab-intro">
+
+    <div class="card">
+      <h2>🎋 Qu'est-ce que le soroban ?</h2>
+      <p>Le <strong>soroban</strong> (そろばん · 算盤) est le boulier japonais, descendant du <em>suanpan</em> chinois importé au Japon vers le XVIe siècle. Simplifié et optimisé, il est devenu l'outil de calcul mental par excellence au Japon.</p>
+      <p>Contrairement à son ancêtre chinois (2 perles en zone ciel, 5 en zone terre), le soroban moderne n'utilise qu'<strong>1 perle en zone ciel</strong> et <strong>4 perles en zone terre</strong> — exactement le nécessaire pour représenter les chiffres de 0 à 9.</p>
+      <div class="highlight">
+        <strong>今でも現役</strong> (ima demo geneki) — encore en service aujourd'hui.<br>
+        Au Japon, la maîtrise du soroban est un art reconnu : les compétiteurs avancés réalisent des additions à 15 chiffres plus vite qu'une calculatrice !
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📜 Histoire en bref</h2>
+      <div class="step-seq">
+        <div class="step-item">
+          <div class="step-num">▸</div>
+          <div><strong>~1600</strong> — Le boulier chinois <em>suanpan</em> est introduit au Japon via la Corée.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">▸</div>
+          <div><strong>XVIIe s.</strong> — Les japonais réduisent à 1+4 perles : le soroban est né.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">▸</div>
+          <div><strong>1946</strong> — Célèbre duel à Tokyo : Kiyoshi Matsuzaki (soroban) bat Private Thomas Wood (calculatrice électrique) 4 épreuves sur 5.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">▸</div>
+          <div><strong>Aujourd'hui</strong> — Enseigné dans les écoles primaires japonaises, avec des examens officiels de niveau 1 à 10.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🧠 Pourquoi apprendre le soroban ?</h2>
+      <ul>
+        <li>Développe la <strong>visualisation mentale</strong> et la mémoire de travail</li>
+        <li>Améliore la <strong>rapidité de calcul</strong> mental</li>
+        <li>Objet culturel japonais fascinant</li>
+        <li>Compréhension profonde du <strong>système décimal positionnel</strong></li>
+        <li>Les experts « voient » un soroban imaginaire dans leur tête</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- §2  ANATOMIE                           -->
+  <!-- ══════════════════════════════════════ -->
+  <div class="section" id="tab-anatomie">
+
+    <div class="card">
+      <h2>🔍 Les parties du soroban</h2>
+
+      <div class="mini-soroban-wrap">
+        <svg id="anatomySVG" width="340" height="200"></svg>
+      </div>
+
+      <div class="highlight" id="anatomyHint" style="text-align:center;font-style:italic;opacity:.7">
+        ☝️ Clique sur une partie du soroban pour en savoir plus
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>⚡ Principe fondamental</h2>
+      <p>Une perle <strong>active</strong> est une perle poussée <em>vers la barre centrale</em>.</p>
+      <div class="step-seq">
+        <div class="step-item">
+          <div class="step-num">☁</div>
+          <div><strong>Perle ciel (heaven)</strong> — active quand elle est en <em>bas</em>, contre la barre. Elle vaut <strong>5</strong>.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">🌍</div>
+          <div><strong>Perles terre (earth)</strong> — actives quand elles sont en <em>haut</em>, contre la barre. Chacune vaut <strong>1</strong>.</div>
+        </div>
+      </div>
+      <p>La valeur d'une colonne = <code>heaven×5 + earth×1</code>, soit de 0 à 9.</p>
+    </div>
+
+    <div class="card">
+      <h2>📐 Les colonnes et le poids</h2>
+      <p>Chaque colonne représente une <strong>puissance de 10</strong>, comme en notation décimale :</p>
+      <div class="comp-table" style="grid-template-columns:repeat(5,1fr)">
+        <div class="comp-cell" style="cursor:default">
+          <div class="op">…</div>
+          <div class="eq">100 000</div>
+        </div>
+        <div class="comp-cell" style="cursor:default">
+          <div class="op">万</div>
+          <div class="eq">10 000</div>
+        </div>
+        <div class="comp-cell" style="cursor:default">
+          <div class="op">千</div>
+          <div class="eq">1 000</div>
+        </div>
+        <div class="comp-cell" style="cursor:default">
+          <div class="op">百</div>
+          <div class="eq">100</div>
+        </div>
+        <div class="comp-cell" style="cursor:default">
+          <div class="op">十</div>
+          <div class="eq">10</div>
+        </div>
+      </div>
+      <p style="margin-top:8px">Les <strong>points sur la barre</strong> marquent les milliers (×1 000, ×1 000 000…) pour repérer facilement les colonnes clés.</p>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- §3  LIRE & POSER                       -->
+  <!-- ══════════════════════════════════════ -->
+  <div class="section" id="tab-lire">
+
+    <div class="card">
+      <h2>👁 Lire une valeur</h2>
+      <p>Pour lire le soroban : sur chaque colonne, compter les perles <em>actives</em> (poussées vers la barre). La valeur totale = somme sur toutes les colonnes.</p>
+
+      <div class="quiz-box">
+        <div style="font-family:'DM Serif Display',serif;font-size:.9rem;color:#5a3010;margin-bottom:8px">Quelle valeur est affichée ?</div>
+        <div class="quiz-svg-wrap">
+          <svg id="quizReadSVG" width="280" height="160"></svg>
+        </div>
+        <div>
+          <input class="quiz-input" type="number" id="quizReadInput" placeholder="?">
+          <button class="quiz-btn" onclick="checkReadQuiz()">✓ Valider</button>
+          <button class="quiz-btn secondary" onclick="newReadQuiz()">→ Autre</button>
+        </div>
+        <div class="quiz-feedback" id="quizReadFB"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📍 Poser un nombre</h2>
+      <p>Pour poser (afficher) le nombre <strong>7</strong> sur une colonne :</p>
+      <div class="step-seq">
+        <div class="step-item"><div class="step-num">1</div><div>7 = 5 + 2 → activer la perle ciel (5) <em>et</em> 2 perles terre (2).</div></div>
+        <div class="step-item"><div class="step-num">2</div><div>Pousser la perle ciel <em>vers le bas</em> (contre la barre).</div></div>
+        <div class="step-item"><div class="step-num">3</div><div>Pousser 2 perles terre <em>vers le haut</em> (contre la barre).</div></div>
+      </div>
+      <div class="highlight">
+        <strong>Astuce :</strong> décomposer mentalement chaque chiffre en <strong>5 + reste</strong>.<br>
+        6 = 5+1 · 7 = 5+2 · 8 = 5+3 · 9 = 5+4
+      </div>
+
+      <div class="demo-zone" id="poseDemo">
+        <div style="font-family:'DM Serif Display',serif;font-size:.88rem;color:#5a3010;margin-bottom:6px">Pose un chiffre sur cette colonne :</div>
+        <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:10px">
+          <button class="quiz-btn secondary" onclick="poseDigit(0)">0</button>
+          <button class="quiz-btn secondary" onclick="poseDigit(1)">1</button>
+          <button class="quiz-btn secondary" onclick="poseDigit(2)">2</button>
+          <button class="quiz-btn secondary" onclick="poseDigit(3)">3</button>
+          <button class="quiz-btn secondary" onclick="poseDigit(4)">4</button>
+          <button class="quiz-btn secondary" onclick="poseDigit(5)">5</button>
+          <button class="quiz-btn secondary" onclick="poseDigit(6)">6</button>
+          <button class="quiz-btn secondary" onclick="poseDigit(7)">7</button>
+          <button class="quiz-btn secondary" onclick="poseDigit(8)">8</button>
+          <button class="quiz-btn secondary" onclick="poseDigit(9)">9</button>
+        </div>
+        <svg id="poseDemoSVG" width="60" height="160"></svg>
+        <div class="demo-label" id="poseDemoLabel">Clique sur un chiffre</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- §4  COMPLÉMENTS                        -->
+  <!-- ══════════════════════════════════════ -->
+  <div class="section" id="tab-complements">
+
+    <div class="card">
+      <h2>⚖️ Pourquoi les compléments ?</h2>
+      <p>Sur le soroban, on ne peut pas toujours additionner directement. Si les perles manquent, on utilise un <strong>complément</strong> et on propage une retenue.</p>
+      <p>C'est la clé de toute l'arithmétique sur le soroban. Il faut les connaître <em>par réflexe</em>, comme les tables de multiplication.</p>
+    </div>
+
+    <div class="card">
+      <h2>5⃣ Compléments à 5</h2>
+      <p>Quand on ne peut pas ajouter directement avec les perles terre (≤4), on utilise la perle ciel (5) et on soustrait le complément.</p>
+
+      <div class="comp-table">
+        <div class="comp-cell" onclick="showComp5(1)" id="c5_1">
+          <div class="op">1</div>
+          <div class="eq">+5 −4</div>
+        </div>
+        <div class="comp-cell" onclick="showComp5(2)" id="c5_2">
+          <div class="op">2</div>
+          <div class="eq">+5 −3</div>
+        </div>
+        <div class="comp-cell" onclick="showComp5(3)" id="c5_3">
+          <div class="op">3</div>
+          <div class="eq">+5 −2</div>
+        </div>
+        <div class="comp-cell" onclick="showComp5(4)" id="c5_4">
+          <div class="op">4</div>
+          <div class="eq">+5 −1</div>
+        </div>
+      </div>
+
+      <div class="highlight" id="comp5Detail" style="display:none"></div>
+
+      <p style="margin-top:8px">La formule : pour ajouter <em>n</em> quand la perle ciel est libre → activer la perle ciel, désactiver <strong>(5−n)</strong> perles terre.</p>
+    </div>
+
+    <div class="card">
+      <h2>🔟 Compléments à 10</h2>
+      <p>Quand la colonne est "pleine" (dépassement), on active la <strong>colonne suivante</strong> (retenue +1) et on soustrait le complément à 10.</p>
+
+      <div class="comp-table">
+        <div class="comp-cell" onclick="showComp10(1)" id="c10_1"><div class="op">1</div><div class="eq">+10 −9</div></div>
+        <div class="comp-cell" onclick="showComp10(2)" id="c10_2"><div class="op">2</div><div class="eq">+10 −8</div></div>
+        <div class="comp-cell" onclick="showComp10(3)" id="c10_3"><div class="op">3</div><div class="eq">+10 −7</div></div>
+        <div class="comp-cell" onclick="showComp10(4)" id="c10_4"><div class="op">4</div><div class="eq">+10 −6</div></div>
+        <div class="comp-cell" onclick="showComp10(5)" id="c10_5"><div class="op">5</div><div class="eq">+10 −5</div></div>
+        <div class="comp-cell" onclick="showComp10(6)" id="c10_6"><div class="op">6</div><div class="eq">+10 −4</div></div>
+        <div class="comp-cell" onclick="showComp10(7)" id="c10_7"><div class="op">7</div><div class="eq">+10 −3</div></div>
+        <div class="comp-cell" onclick="showComp10(8)" id="c10_8"><div class="op">8</div><div class="eq">+10 −2</div></div>
+        <div class="comp-cell" onclick="showComp10(9)" id="c10_9"><div class="op">9</div><div class="eq">+10 −1</div></div>
+      </div>
+
+      <div class="highlight" id="comp10Detail" style="display:none"></div>
+
+      <p style="margin-top:8px">La formule : pour ajouter <em>n</em> quand il y a retenue → +1 sur la colonne gauche, désactiver <strong>(10−n)</strong> sur la colonne courante.</p>
+    </div>
+
+    <div class="card">
+      <h2>💡 Exemple concret : 7 + 8</h2>
+      <div class="step-seq">
+        <div class="step-item"><div class="step-num">1</div><div>Poser <strong>7</strong> : perle ciel (5) + 2 perles terre.</div></div>
+        <div class="step-item"><div class="step-num">2</div><div>Ajouter <strong>8</strong> : la colonne a 7, il faudrait 15 → dépassement !<br>Complément à 10 de 8 = <strong>2</strong> → retenue +1 à gauche, désactiver 2 perles terre.</div></div>
+        <div class="step-item"><div class="step-num">3</div><div>Résultat : <strong>1</strong> (dizaine) + <strong>5</strong> (unités) = <strong>15</strong> ✓</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- §5  TECHNIQUES                         -->
+  <!-- ══════════════════════════════════════ -->
+  <div class="section" id="tab-techniques">
+
+    <div class="card">
+      <h2>🎯 Les 8 techniques d'addition</h2>
+      <p>Référence : <em>« S'initier au boulier en 10 leçons »</em> (Wikilivres). Chaque situation de calcul correspond à une technique précise — cette app les détecte et les nomme automatiquement.</p>
+
+      <div class="tech-grid">
+        <div class="tech-card" onclick="showTech('add',1)">
+          <div class="tnum">T1</div>
+          <div>Activer unaires</div>
+          <div class="tdesc">Assez de perles terre libres → activation directe</div>
+        </div>
+        <div class="tech-card" onclick="showTech('add',2)">
+          <div class="tnum">T2</div>
+          <div>Activer quinaire</div>
+          <div class="tdesc">Ajouter 5 → activer la perle ciel</div>
+        </div>
+        <div class="tech-card" onclick="showTech('add',3)">
+          <div class="tnum">T3</div>
+          <div>Quinaire + unaires</div>
+          <div class="tdesc">Activer ciel et perles terre ensemble</div>
+        </div>
+        <div class="tech-card" onclick="showTech('add',4)">
+          <div class="tnum">T4</div>
+          <div>Complément à 5</div>
+          <div class="tdesc">Activer ciel, désactiver (5−n) terres</div>
+        </div>
+        <div class="tech-card" onclick="showTech('add',5)">
+          <div class="tnum">T5</div>
+          <div>Complément à 10</div>
+          <div class="tdesc">Désactiver terres, retenue +1 à gauche</div>
+        </div>
+        <div class="tech-card" onclick="showTech('add',6)">
+          <div class="tnum">T6</div>
+          <div>Quinaire → décadaire</div>
+          <div class="tdesc">Désactiver ciel, retenue (+5 quand ciel pleine)</div>
+        </div>
+        <div class="tech-card" onclick="showTech('add',7)">
+          <div class="tnum">T7</div>
+          <div>Compl. 10 + quinaire</div>
+          <div class="tdesc">Désactiver ciel+terres, retenue</div>
+        </div>
+        <div class="tech-card" onclick="showTech('add',8)">
+          <div class="tnum">T8</div>
+          <div>Unaires+quinaire→décad.</div>
+          <div class="tdesc">Activer terres, désactiver ciel, retenue</div>
+        </div>
+      </div>
+
+      <div class="highlight" id="techAddDetail" style="display:none"></div>
+    </div>
+
+    <div class="card">
+      <h2>🎯 Les 8 techniques de soustraction</h2>
+      <p>Symétriques aux techniques d'addition, avec emprunts au lieu de retenues.</p>
+
+      <div class="tech-grid">
+        <div class="tech-card" onclick="showTech('sub',1)">
+          <div class="tnum">T1</div>
+          <div>Désactiver unaires</div>
+          <div class="tdesc">Assez de perles actives → désactivation directe</div>
+        </div>
+        <div class="tech-card" onclick="showTech('sub',2)">
+          <div class="tnum">T2</div>
+          <div>Désactiver quinaire</div>
+          <div class="tdesc">Ôter 5 → désactiver la perle ciel</div>
+        </div>
+        <div class="tech-card" onclick="showTech('sub',3)">
+          <div class="tnum">T3</div>
+          <div>Quinaire + unaires</div>
+          <div class="tdesc">Désactiver ciel et perles terre ensemble</div>
+        </div>
+        <div class="tech-card" onclick="showTech('sub',4)">
+          <div class="tnum">T4</div>
+          <div>Complément à 5</div>
+          <div class="tdesc">Activer terres, désactiver ciel (x = 5−r)</div>
+        </div>
+        <div class="tech-card" onclick="showTech('sub',5)">
+          <div class="tnum">T5</div>
+          <div>Complément à 10</div>
+          <div class="tdesc">Emprunt −1 à gauche, activer (10−n) terres</div>
+        </div>
+        <div class="tech-card" onclick="showTech('sub',6)">
+          <div class="tnum">T6</div>
+          <div>Décadaire → quinaire</div>
+          <div class="tdesc">Emprunt, activer ciel (ôter 5 sans ciel)</div>
+        </div>
+        <div class="tech-card" onclick="showTech('sub',7)">
+          <div class="tnum">T7</div>
+          <div>Compl. 10 + quinaire</div>
+          <div class="tdesc">Emprunt, activer ciel + terres</div>
+        </div>
+        <div class="tech-card" onclick="showTech('sub',8)">
+          <div class="tnum">T8</div>
+          <div>Décad.+quinaire−unaires</div>
+          <div class="tdesc">Emprunt, activer ciel, désactiver terres</div>
+        </div>
+      </div>
+
+      <div class="highlight" id="techSubDetail" style="display:none"></div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- §6  CETTE APPLICATION                  -->
+  <!-- ══════════════════════════════════════ -->
+  <div class="section" id="tab-app">
+
+    <div class="card">
+      <h2>📱 Fonctionnalités de cette app</h2>
+
+      <div class="feature-list">
+
+        <div class="feature-item">
+          <div class="feature-icon">🔓</div>
+          <div>
+            <div class="feature-title">Mode Libre</div>
+            <div class="feature-desc">Manipule les perles librement, la valeur s'affiche en temps réel. Boutons <em>Aléatoire</em> et <em>Zéro</em> disponibles.</div>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon">👁</div>
+          <div>
+            <div class="feature-title">Mode Lecture</div>
+            <div class="feature-desc">Le soroban affiche un nombre aléatoire — tu lis et entres la valeur. Feedback immédiat, score cumulé, points de progression.</div>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon">📍</div>
+          <div>
+            <div class="feature-title">Mode Pose</div>
+            <div class="feature-desc">Un nombre t'est donné — tu le poses sur le soroban. Bouton Indice qui révèle la solution si tu bloques.</div>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon">➕</div>
+          <div>
+            <div class="feature-title">Addition guidée pas-à-pas</div>
+            <div class="feature-desc">Le <strong>moteur de techniques</strong> calcule la séquence exacte de micro-gestes. Lecteur avec ⏮ ◀ ▶ ▶| et vitesse réglable. Chaque étape nomme la technique utilisée (T1…T8), avec explication. Colonne active surlignée en or.</div>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon">➖</div>
+          <div>
+            <div class="feature-title">Soustraction guidée pas-à-pas</div>
+            <div class="feature-desc">Même moteur que l'addition, avec les 8 techniques de soustraction et gestion des emprunts.</div>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon">✖</div>
+          <div>
+            <div class="feature-title">Multiplication & Division</div>
+            <div class="feature-desc">Exercices libres — pose le résultat sur le soroban, valide ou affiche la solution. Difficulté adaptée au niveau choisi.</div>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon">⏱</div>
+          <div>
+            <div class="feature-title">Mode Chrono</div>
+            <div class="feature-desc">10 questions contre la montre — choix du type (Lecture / Pose / Addition). Score final avec temps et taux de réussite.</div>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon">🎬</div>
+          <div>
+            <div class="feature-title">Mode Démo</div>
+            <div class="feature-desc">Animation automatique colonne par colonne. Bouton <em>Séquence</em> pour parcourir des nombres emblématiques. Vitesse d'animation réglable.</div>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon">⚙️</div>
+          <div>
+            <div class="feature-title">Paramètres globaux</div>
+            <div class="feature-desc">
+              <strong>Colonnes</strong> : 7 à 13 colonnes adaptables.<br>
+              <strong>Difficulté</strong> : 5 niveaux (Débutant → Expert) — influe sur la taille des nombres générés.<br>
+              <strong>Masquer la valeur</strong> : cache l'affichage numérique pour travailler en autonomie.<br>
+              <strong>Plein écran</strong> : bouton ⛶ en haut à droite.
+            </div>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon">🎵</div>
+          <div>
+            <div class="feature-title">Retours audio</div>
+            <div class="feature-desc">Clic de perle, fanfare de succès, son d'erreur — via Web Audio API, aucune ressource externe.</div>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon">📱</div>
+          <div>
+            <div class="feature-title">Responsive & tactile</div>
+            <div class="feature-desc">Fonctionne sur mobile et tablette. Zones de clic larges, touch events optimisés. Le soroban s'adapte à la largeur de l'écran.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>💡 Conseils d'utilisation</h2>
+      <div class="step-seq">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div>Commence par le <strong>Mode Démo</strong> → Séquence pour voir les nombres s'animer.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div>Entraîne-toi en <strong>Lecture</strong> niveau 1–2 jusqu'à lire sans hésitation.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div>Pratique la <strong>Pose</strong> : la maîtrise de la décomposition 5+n est indispensable.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div>En <strong>Addition guidée</strong>, active l'option « Technique » et regarde chaque étape — tu verras les 8 techniques en action.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">5</div>
+          <div>Une fois à l'aise, utilise le <strong>Mode Chrono</strong> pour mesurer ta progression.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- §7  WIKILIVRES — S'initier au boulier  -->
+  <!-- ══════════════════════════════════════ -->
+  <div class="section" id="tab-wikilivres">
+
+    <div class="doc-banner">
+      <span class="doc-icon">📚</span>
+      <span><strong>Documentation externe</strong> — Cours issu de <strong>Wikilivres</strong> (licence GFDL / CC BY-SA), adapté pour cette app. Contenu de référence, distinct du tutoriel interactif.</span>
+    </div>
+
+    <div class="card">
+      <h2>📚 S'initier au boulier en 10 leçons</h2>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin:12px 0;">
+        <button class="quiz-btn secondary" onclick="showLecon(0)">Introduction</button>
+        <button class="quiz-btn secondary" onclick="showLecon(1)">L1 · Bases</button>
+        <button class="quiz-btn secondary" onclick="showLecon(2)">L2 · Addition</button>
+        <button class="quiz-btn secondary" onclick="showLecon(3)">L3 · Soustraction</button>
+        <button class="quiz-btn secondary" onclick="showLecon(4)">L4 · Exercices</button>
+        <button class="quiz-btn secondary" onclick="showLecon(5)">L5 · Multiplication</button>
+        <button class="quiz-btn secondary" onclick="showLecon(6)">L6 · Ex. ×</button>
+        <button class="quiz-btn secondary" onclick="showLecon(7)">L7 · Division</button>
+        <button class="quiz-btn secondary" onclick="showLecon(8)">L8 · Ex. ÷</button>
+        <button class="quiz-btn secondary" onclick="showLecon(9)">L9 · Hexadécimal</button>
+        <button class="quiz-btn secondary" onclick="showLecon(10)">L10 · Ex. Hex</button>
+      </div>
+    </div>
+
+    <!-- LEÇON 0 : INTRODUCTION -->
+    <div class="wiki-lecon active" id="lecon-0">
+      <div class="card">
+        <h2>🎋 Introduction</h2>
+        <p>Le boulier est un instrument de calcul très ancien utilisé dans toutes les régions du monde. On le rencontre encore aujourd'hui en Asie (Chine et Japon principalement) et en Europe de l'Est.</p>
+        <p>Ce cours présente une initiation au boulier en 10 leçons. Les méthodes exposées sont un mélange de méthodes personnelles et de méthodes très classiques, souvent japonaises — réputées plus efficaces — et s'appliquent aux modèles chinois ou japonais.</p>
+        <div class="highlight">
+          <strong>Objectif :</strong> Apprendre à utiliser un soroban moderne pour effectuer additions, soustractions, multiplications et divisions, jusqu'à la base hexadécimale.
+        </div>
+      </div>
+    </div>
+
+    <!-- LEÇON 1 : BASES ET VOCABULAIRE -->
+    <div class="wiki-lecon" id="lecon-1">
+      <div class="card">
+        <h2>📐 Leçon 1 — Bases et vocabulaire</h2>
+        <h3>Les types de bouliers</h3>
+        <p><strong>Boulier chinois (suanpan · 算盘)</strong> : 7 à 13 colonnes, 2 boules supérieures (quinaires) et 5 boules inférieures (unaires).</p>
+        <p><strong>Soroban moderne (1922)</strong> : 9 à 31 colonnes, 1 quinaire et 4 unaires, avec points de repères. C'est lui que nous utilisons dans ce cours.</p>
+        <p><strong>Boulier russe (stchoty · Счёты)</strong> : 10 boules par rangée, les 2 centrales sont de couleur différente.</p>
+      </div>
+      <div class="card">
+        <h2>⚪ Unaires, quinaires et décadaires</h2>
+        <p><strong>Unaires</strong> : boules inférieures. Activées (contre la barre) → valent chacune <strong>1</strong>.</p>
+        <p><strong>Quinaires</strong> : boules supérieures. Activée (contre la barre) → vaut <strong>5</strong>.</p>
+        <p><strong>Décadaires</strong> : unaires de la colonne immédiatement à <em>gauche</em> — interviennent lors des retenues.</p>
+        <div class="highlight">
+          Chaque colonne représente une puissance de 10 (de droite à gauche : unités, dizaines, centaines…). Pour écrire 3 572, on pose : 0 – 3 – 5 – 7 – 2.
+        </div>
+        <h3>Le doigté japonais (2 doigts)</h3>
+        <ul style="padding-left:18px;font-size:.88rem;line-height:1.8;color:#2a1a0a;opacity:.88;">
+          <li>Les <strong>quinaires</strong> sont manipulées avec l'<strong>index</strong>.</li>
+          <li>Les <strong>unaires</strong> sont <em>activées</em> avec le <strong>pouce</strong> et <em>désactivées</em> avec l'<strong>index</strong>.</li>
+          <li>Les deux doigts forment un angle d'environ 45° avec la table. Les autres doigts sont repliés.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- LEÇON 2 : ADDITION -->
+    <div class="wiki-lecon" id="lecon-2">
+      <div class="card">
+        <h2>➕ Leçon 2 — L'addition</h2>
+        <p>Les additions se décomposent en opérations à <strong>un chiffre</strong>, colonne par colonne, de <strong>gauche à droite</strong> (contrairement au calcul écrit occidental).</p>
+        <div class="highlight">
+          Tableau de correspondances clé : <strong>8 = 10 − 2</strong>, donc 3 + 8 = 3 − 2 + 10.
+        </div>
+      </div>
+      <div class="card">
+        <h2>📋 Les 8 techniques de l'addition</h2>
+        <div class="step-seq">
+          <div class="step-item"><div class="step-num">T1</div><div><strong>Activer des unaires avec le pouce</strong> — Quand il reste assez d'unaires désactivées. Ex : 6+2=8.</div></div>
+          <div class="step-item"><div class="step-num">T2</div><div><strong>Activer une quinaire avec l'index</strong> — Pour ajouter 5 si la quinaire est libre. Ex : 2+5=7.</div></div>
+          <div class="step-item"><div class="step-num">T3</div><div><strong>Activer quinaire + unaires simultanément</strong> — Quinaire libre et assez de terres libres. Ex : 1+7=8.</div></div>
+          <div class="step-item"><div class="step-num">T4</div><div><strong>Activer quinaire puis désactiver unaires (compl. à 5)</strong> — Pas assez d'unaires libres, quinaire libre. Ex : 4+3=7 (≡ 4+(5−2)).</div></div>
+          <div class="step-item"><div class="step-num">T5</div><div><strong>Désactiver unaires puis activer décadaire (compl. à 10)</strong> — Débordement de colonne. Ex : 4+7=11 (≡ 4+(10−3)).</div></div>
+          <div class="step-item"><div class="step-num">T6</div><div><strong>Désactiver quinaire puis activer décadaire</strong> — Ajouter 5 quand la quinaire est déjà active. Ex : 8+5=13.</div></div>
+          <div class="step-item"><div class="step-num">T7</div><div><strong>Désactiver unaires + quinaire + activer décadaire</strong> — Ajouter 1–4, quinaire active, pas assez d'unaires. Ex : 8+3=11 (≡ 8+(5−2)).</div></div>
+          <div class="step-item"><div class="step-num">T8</div><div><strong>Activer unaires + désactiver quinaire + activer décadaire</strong> — Ajouter 6–9, quinaire active, assez d'unaires. Ex : 6+7=13 (≡ 6+2+(10−5)).</div></div>
+        </div>
+        <div class="highlight">
+          <strong>Addition à plusieurs chiffres :</strong> Décomposer en additions à un chiffre, colonne par colonne (gauche → droite). Si la colonne des décadaires est à 9, la passer à 0 et reporter sur la centaine.
+        </div>
+      </div>
+    </div>
+
+    <!-- LEÇON 3 : SOUSTRACTION -->
+    <div class="wiki-lecon" id="lecon-3">
+      <div class="card">
+        <h2>➖ Leçon 3 — La soustraction</h2>
+        <p>Les soustractions ressemblent aux additions : elles se calculent selon <strong>8 techniques</strong> qui sont souvent les opposées des techniques d'addition.</p>
+        <div class="highlight">On peut commencer indifféremment par les poids forts (gauche) ou les poids faibles (droite).</div>
+      </div>
+      <div class="card">
+        <h2>📋 Les 8 techniques de la soustraction</h2>
+        <div class="step-seq">
+          <div class="step-item"><div class="step-num">T1</div><div><strong>Désactiver des unaires avec l'index</strong> — Assez d'unaires actives. Ex : 8−2=6.</div></div>
+          <div class="step-item"><div class="step-num">T2</div><div><strong>Désactiver la quinaire avec l'index</strong> — Ôter 5, quinaire active. Ex : 7−5=2.</div></div>
+          <div class="step-item"><div class="step-num">T3</div><div><strong>Désactiver unaires puis quinaire</strong> — Ôter 6–9, quinaire + unaires actives. Ex : 8−7=1 (≡ 8−(2+5)).</div></div>
+          <div class="step-item"><div class="step-num">T4</div><div><strong>Activer unaires puis désactiver quinaire (compl. à 5)</strong> — Ôter 1–4, quinaire active, pas assez d'unaires. Ex : 7−3=4 (≡ 7−(5−2)).</div></div>
+          <div class="step-item"><div class="step-num">T5</div><div><strong>Désactiver décadaire puis activer unaires (compl. à 10)</strong> — Emprunt. Ex : 11−7=4 (≡ 11−(10−3)).</div></div>
+          <div class="step-item"><div class="step-num">T6</div><div><strong>Désactiver décadaire puis activer quinaire</strong> — Ôter 5, quinaire inactive. Ex : 13−5=8 (≡ 13−10+5).</div></div>
+          <div class="step-item"><div class="step-num">T7</div><div><strong>Désactiver décadaire + activer quinaire + unaires</strong> — Ôter 1–4, quinaire désactivée. Ex : 11−3=8 (≡ 11−10+5+2).</div></div>
+          <div class="step-item"><div class="step-num">T8</div><div><strong>Désactiver décadaire + quinaire + activer unaires</strong> — Ôter 6–9, quinaire désactivée, assez d'unaires. Ex : 13−7=6 (≡ 13−10+5−2).</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEÇON 4 : EXERCICES -->
+    <div class="wiki-lecon" id="lecon-4">
+      <div class="card">
+        <h2>🏋️ Leçon 4 — Exercices</h2>
+        <p>Avant d'aborder les multiplications et divisions, il est nécessaire de <strong>maîtriser</strong> les techniques d'addition et de soustraction. Seule la pratique permet de les transformer en automatismes.</p>
+        <div class="highlight"><strong>Principe :</strong> Effectuer ces exercices avec un vrai soroban. Les résultats sont donnés pour vérification rapide.</div>
+      </div>
+      <div class="card">
+        <h2>➕ Additions seules (extrait)</h2>
+        <div style="overflow-x:auto;">
+        <table style="border-collapse:collapse;font-size:.8rem;font-family:monospace;margin:8px auto;">
+          <tr><td style="padding:3px 10px;text-align:right;">164</td><td style="padding:3px 10px;text-align:right;">478</td><td style="padding:3px 10px;text-align:right;">983</td><td style="padding:3px 10px;text-align:right;">476</td></tr>
+          <tr><td style="padding:3px 10px;text-align:right;">+ 83</td><td style="padding:3px 10px;text-align:right;">+ 324</td><td style="padding:3px 10px;text-align:right;">+ 1 521</td><td style="padding:3px 10px;text-align:right;">+ 923</td></tr>
+          <tr><td style="padding:3px 10px;text-align:right;">+ 430</td><td style="padding:3px 10px;text-align:right;">+ 780</td><td style="padding:3px 10px;text-align:right;">+ 730</td><td style="padding:3px 10px;text-align:right;">+ 2 327</td></tr>
+          <tr><td style="padding:3px 10px;text-align:right;">+ 56</td><td style="padding:3px 10px;text-align:right;">+ 903</td><td style="padding:3px 10px;text-align:right;">+ 2 349</td><td style="padding:3px 10px;text-align:right;">+ 50</td></tr>
+          <tr><td style="padding:3px 10px;text-align:right;">+ 13</td><td style="padding:3px 10px;text-align:right;">+ 76</td><td style="padding:3px 10px;text-align:right;">+ 527</td><td style="padding:3px 10px;text-align:right;">+ 7 802</td></tr>
+          <tr><td style="padding:3px 10px;text-align:right;">+ 107</td><td style="padding:3px 10px;text-align:right;">+ 818</td><td style="padding:3px 10px;text-align:right;">+ 982</td><td style="padding:3px 10px;text-align:right;">+ 470</td></tr>
+          <tr><td style="padding:3px 10px;text-align:right;">+ 49</td><td style="padding:3px 10px;text-align:right;">+ 52</td><td style="padding:3px 10px;text-align:right;">+ 1 528</td><td style="padding:3px 10px;text-align:right;">+ 3 026</td></tr>
+          <tr><td style="padding:3px 10px;text-align:right;">+ 951</td><td style="padding:3px 10px;text-align:right;">+ 429</td><td style="padding:3px 10px;text-align:right;">+ 792</td><td style="padding:3px 10px;text-align:right;">+ 529</td></tr>
+          <tr><td style="padding:3px 10px;text-align:right;">+ 61</td><td style="padding:3px 10px;text-align:right;">+ 83</td><td style="padding:3px 10px;text-align:right;">+ 1 051</td><td style="padding:3px 10px;text-align:right;">+ 47</td></tr>
+          <tr><td style="padding:3px 10px;text-align:right;">+ 48</td><td style="padding:3px 10px;text-align:right;">+ 651</td><td style="padding:3px 10px;text-align:right;">+ 772</td><td style="padding:3px 10px;text-align:right;">+ 1 572</td></tr>
+          <tr style="font-weight:700;border-top:1px solid #c8854a;color:#5a3010;"><td style="padding:4px 10px;text-align:right;">= 1 962</td><td style="padding:4px 10px;text-align:right;">= 4 594</td><td style="padding:4px 10px;text-align:right;">= 11 235</td><td style="padding:4px 10px;text-align:right;">= 17 222</td></tr>
+        </table>
+        </div>
+      </div>
+      <div class="card">
+        <h2>➖ Soustractions seules (extrait)</h2>
+        <div style="overflow-x:auto;">
+        <table style="border-collapse:collapse;font-size:.8rem;font-family:monospace;margin:8px auto;">
+          <tr><td style="padding:3px 10px;text-align:right;">1 383</td><td style="padding:3px 10px;text-align:right;">1 362</td><td style="padding:3px 10px;text-align:right;">2 211</td><td style="padding:3px 10px;text-align:right;">2 429</td></tr>
+          <tr><td style="padding:3px 10px;text-align:right;">− 87</td><td style="padding:3px 10px;text-align:right;">− 128</td><td style="padding:3px 10px;text-align:right;">− 169</td><td style="padding:3px 10px;text-align:right;">− 53</td></tr>
+          <tr><td style="padding:3px 10px;text-align:right;">− 78</td><td style="padding:3px 10px;text-align:right;">− 141</td><td style="padding:3px 10px;text-align:right;">− 168</td><td style="padding:3px 10px;text-align:right;">− 23</td></tr>
+          <tr><td style="padding:3px 10px;text-align:right;">− 16</td><td style="padding:3px 10px;text-align:right;">− 110</td><td style="padding:3px 10px;text-align:right;">− 30</td><td style="padding:3px 10px;text-align:right;">− 59</td></tr>
+          <tr><td style="padding:3px 10px;text-align:right;">− 94</td><td style="padding:3px 10px;text-align:right;">− 114</td><td style="padding:3px 10px;text-align:right;">− 183</td><td style="padding:3px 10px;text-align:right;">− 70</td></tr>
+          <tr><td style="padding:3px 10px;text-align:right;">− 36</td><td style="padding:3px 10px;text-align:right;">− 77</td><td style="padding:3px 10px;text-align:right;">− 131</td><td style="padding:3px 10px;text-align:right;">− 168</td></tr>
+          <tr><td style="padding:3px 10px;text-align:right;">− 87</td><td style="padding:3px 10px;text-align:right;">− 91</td><td style="padding:3px 10px;text-align:right;">− 63</td><td style="padding:3px 10px;text-align:right;">− 144</td></tr>
+          <tr><td style="padding:3px 10px;text-align:right;">− 93</td><td style="padding:3px 10px;text-align:right;">− 127</td><td style="padding:3px 10px;text-align:right;">− 124</td><td style="padding:3px 10px;text-align:right;">− 207</td></tr>
+          <tr><td style="padding:3px 10px;text-align:right;">− 50</td><td style="padding:3px 10px;text-align:right;">− 23</td><td style="padding:3px 10px;text-align:right;">− 68</td><td style="padding:3px 10px;text-align:right;">− 12</td></tr>
+          <tr><td style="padding:3px 10px;text-align:right;">− 22</td><td style="padding:3px 10px;text-align:right;">− 137</td><td style="padding:3px 10px;text-align:right;">− 136</td><td style="padding:3px 10px;text-align:right;">− 43</td></tr>
+          <tr style="font-weight:700;border-top:1px solid #c8854a;color:#5a3010;"><td style="padding:4px 10px;text-align:right;">= 820</td><td style="padding:4px 10px;text-align:right;">= 414</td><td style="padding:4px 10px;text-align:right;">= 1 139</td><td style="padding:4px 10px;text-align:right;">= 1 650</td></tr>
+        </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEÇON 5 : MULTIPLICATION -->
+    <div class="wiki-lecon" id="lecon-5">
+      <div class="card">
+        <h2>✖️ Leçon 5 — La multiplication</h2>
+        <p>On s'appuie sur la <strong>distributivité</strong> et les <strong>tables de multiplication</strong>. On commence toujours par le <em>poids le plus fort</em> (chiffre de gauche).</p>
+        <div class="highlight">
+          <strong>Multiplier par 10</strong> revient à décaler d'une rangée vers la gauche.
+        </div>
+      </div>
+      <div class="card">
+        <h2>🔢 Multiplication par un nombre à un chiffre</h2>
+        <p>Exemple : <strong>7 × 283</strong></p>
+        <div class="step-seq">
+          <div class="step-item"><div class="step-num">1</div><div>Écrire 283 à droite. La boule rouge indique le chiffre en cours.</div></div>
+          <div class="step-item"><div class="step-num">2</div><div>2 × 7 = 14 → placer 14 <em>à la place</em> du 2. Résultat : <strong>1 4 8 3</strong>.</div></div>
+          <div class="step-item"><div class="step-num">3</div><div>8 × 7 = 56 → le 5 s'ajoute à la colonne gauche. Résultat : <strong>1 9 6 3</strong>.</div></div>
+          <div class="step-item"><div class="step-num">4</div><div>3 × 7 = 21 → le 2 s'ajoute à la colonne gauche. Résultat final : <strong>1 981</strong>.</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>🔢 Multiplication par un nombre à deux chiffres</h2>
+        <p>Exemple : <strong>47 × 283</strong></p>
+        <div class="step-seq">
+          <div class="step-item"><div class="step-num">1</div><div>Écrire <strong>0 0 2 8 3</strong> — réserver 2 colonnes à gauche (autant que le multiplicateur a de chiffres).</div></div>
+          <div class="step-item"><div class="step-num">2</div><div>Multiplier 2 par 4 (8) → poser dans les 2 colonnes gauche : <strong>0 8 2 8 3</strong>.</div></div>
+          <div class="step-item"><div class="step-num">3</div><div>Multiplier 2 par 7 (14) → décaler d'une case droite : <strong>0 9 4 8 3</strong>.</div></div>
+          <div class="step-item"><div class="step-num">4</div><div>Multiplier 8 par 4 (32) → ajouter dans les 2 colonnes gauche de 8 : <strong>1 2 6 8 3</strong>.</div></div>
+          <div class="step-item"><div class="step-num">5</div><div>Multiplier 8 par 7 (56) → à la place de 8 : <strong>1 3 1 6 3</strong>.</div></div>
+          <div class="step-item"><div class="step-num">6</div><div>Multiplier 3 par 4 (12) → <strong>1 3 2 8 3</strong>.</div></div>
+          <div class="step-item"><div class="step-num">7</div><div>Multiplier 3 par 7 (21) → résultat final : <strong>13 301</strong>.</div></div>
+        </div>
+        <div class="highlight"><strong>Nombres à virgule :</strong> Identifier la colonne des unités avant le calcul. Le résultat final conserve le même positionnement de la virgule.</div>
+      </div>
+    </div>
+
+    <!-- LEÇON 6 : EXERCICES MULTIPLICATION -->
+    <div class="wiki-lecon" id="lecon-6">
+      <div class="card">
+        <h2>🏋️ Leçon 6 — Exercices de multiplication</h2>
+        <div class="highlight">Les étapes intermédiaires sont fournies. Les chiffres <span style="color:#c0392b;font-weight:700;">en rouge</span> sont les chiffres non encore traités.</div>
+      </div>
+      <div class="card">
+        <h2>Un chiffre</h2>
+        <div style="overflow-x:auto;">
+        <table style="border-collapse:collapse;font-size:.82rem;font-family:monospace;width:100%;">
+          <thead><tr style="background:rgba(200,133,74,.15);"><th style="padding:5px 8px;text-align:left;">Opération</th><th style="padding:5px 8px;text-align:right;">Résultat</th></tr></thead>
+          <tbody>
+            <tr><td style="padding:3px 8px;">3 × 17</td><td style="padding:3px 8px;text-align:right;font-weight:700;">51</td></tr>
+            <tr style="background:rgba(0,0,0,.03);"><td style="padding:3px 8px;">8 × 23</td><td style="padding:3px 8px;text-align:right;font-weight:700;">184</td></tr>
+            <tr><td style="padding:3px 8px;">6 × 79</td><td style="padding:3px 8px;text-align:right;font-weight:700;">474</td></tr>
+            <tr style="background:rgba(0,0,0,.03);"><td style="padding:3px 8px;">7 × 129</td><td style="padding:3px 8px;text-align:right;font-weight:700;">903</td></tr>
+            <tr><td style="padding:3px 8px;">5 × 421</td><td style="padding:3px 8px;text-align:right;font-weight:700;">2 105</td></tr>
+            <tr style="background:rgba(0,0,0,.03);"><td style="padding:3px 8px;">7 × 318</td><td style="padding:3px 8px;text-align:right;font-weight:700;">2 226</td></tr>
+            <tr><td style="padding:3px 8px;">4 × 999</td><td style="padding:3px 8px;text-align:right;font-weight:700;">3 996</td></tr>
+            <tr style="background:rgba(0,0,0,.03);"><td style="padding:3px 8px;">9 × 192</td><td style="padding:3px 8px;text-align:right;font-weight:700;">1 728</td></tr>
+            <tr><td style="padding:3px 8px;">8 × 6 017</td><td style="padding:3px 8px;text-align:right;font-weight:700;">48 136</td></tr>
+            <tr style="background:rgba(0,0,0,.03);"><td style="padding:3px 8px;">3 × 432 701</td><td style="padding:3px 8px;text-align:right;font-weight:700;">1 298 103</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Deux chiffres</h2>
+        <div style="overflow-x:auto;">
+        <table style="border-collapse:collapse;font-size:.82rem;font-family:monospace;width:100%;">
+          <thead><tr style="background:rgba(200,133,74,.15);"><th style="padding:5px 8px;text-align:left;">Opération</th><th style="padding:5px 8px;text-align:right;">Résultat</th></tr></thead>
+          <tbody>
+            <tr><td style="padding:3px 8px;">15 × 128</td><td style="padding:3px 8px;text-align:right;font-weight:700;">1 920</td></tr>
+            <tr style="background:rgba(0,0,0,.03);"><td style="padding:3px 8px;">17 × 432</td><td style="padding:3px 8px;text-align:right;font-weight:700;">7 344</td></tr>
+            <tr><td style="padding:3px 8px;">72 × 128</td><td style="padding:3px 8px;text-align:right;font-weight:700;">9 216</td></tr>
+            <tr style="background:rgba(0,0,0,.03);"><td style="padding:3px 8px;">83 × 704</td><td style="padding:3px 8px;text-align:right;font-weight:700;">58 432</td></tr>
+            <tr><td style="padding:3px 8px;">67 × 849</td><td style="padding:3px 8px;text-align:right;font-weight:700;">56 883</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEÇON 7 : DIVISION -->
+    <div class="wiki-lecon" id="lecon-7">
+      <div class="card">
+        <h2>➗ Leçon 7 — La division</h2>
+        <p>La division par n consiste à ôter n du dividende autant de fois que possible. En pratique, on utilise un <strong>tableau des quotients et restes</strong> pour chaque paire (dividende, diviseur).</p>
+        <div class="highlight">La division, comme la multiplication, <strong>commence par le poids le plus fort</strong>.</div>
+      </div>
+      <div class="card">
+        <h2>📋 Tableau des quotients et restes (÷ par 1 chiffre)</h2>
+        <p style="font-size:.8rem;color:#7a5030;margin-bottom:8px;">Lecture : ligne = premier chiffre du dividende, colonne = diviseur. Les valeurs en rouge nécessitent de descendre d'une unité.</p>
+        <div style="overflow-x:auto;">
+        <table style="border-collapse:collapse;font-size:.78rem;font-family:monospace;margin:0 auto;">
+          <thead>
+            <tr style="background:rgba(200,133,74,.2);">
+              <th style="padding:4px 7px;border:1px solid rgba(100,60,20,.2);">dd\dv</th>
+              <th style="padding:4px 7px;border:1px solid rgba(100,60,20,.2);">2</th>
+              <th style="padding:4px 7px;border:1px solid rgba(100,60,20,.2);">3</th>
+              <th style="padding:4px 7px;border:1px solid rgba(100,60,20,.2);">4</th>
+              <th style="padding:4px 7px;border:1px solid rgba(100,60,20,.2);">5</th>
+              <th style="padding:4px 7px;border:1px solid rgba(100,60,20,.2);">6</th>
+              <th style="padding:4px 7px;border:1px solid rgba(100,60,20,.2);">7</th>
+              <th style="padding:4px 7px;border:1px solid rgba(100,60,20,.2);">8</th>
+              <th style="padding:4px 7px;border:1px solid rgba(100,60,20,.2);">9</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);font-weight:700;">1</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(5;0)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(3;1)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(2;2)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(2;0)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;4)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;3)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;2)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;1)</td></tr>
+            <tr style="background:rgba(0,0,0,.03);"><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);font-weight:700;">2</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;0)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);color:#c0392b;">(6;2)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(5;0)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(4;0)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(3;2)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(2;6)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(2;4)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(2;2)</td></tr>
+            <tr><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);font-weight:700;">3</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;1)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;0)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);color:#c0392b;">(7;2)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);color:#c0392b;">(6;0)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(5;0)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(4;2)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(3;6)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(3;3)</td></tr>
+            <tr style="background:rgba(0,0,0,.03);"><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);font-weight:700;">4</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(2;0)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;1)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;0)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);color:#c0392b;">(8;0)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);color:#c0392b;">(6;4)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);color:#c0392b;">(5;5)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(5;0)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(4;4)</td></tr>
+            <tr><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);font-weight:700;">5</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(2;1)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;2)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;1)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;0)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);color:#c0392b;">(8;2)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);color:#c0392b;">(7;1)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(6;2)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(5;5)</td></tr>
+            <tr style="background:rgba(0,0,0,.03);"><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);font-weight:700;">6</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(3;0)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(2;0)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;2)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;1)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;0)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);color:#c0392b;">(8;4)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);color:#c0392b;">(7;4)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);color:#c0392b;">(6;6)</td></tr>
+            <tr><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);font-weight:700;">7</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(3;1)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(2;1)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;3)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;2)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;1)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;0)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);color:#c0392b;">(8;6)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);color:#c0392b;">(7;7)</td></tr>
+            <tr style="background:rgba(0,0,0,.03);"><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);font-weight:700;">8</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(4;0)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(2;2)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(2;0)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;3)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;2)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;1)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;0)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);color:#c0392b;">(8;8)</td></tr>
+            <tr><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);font-weight:700;">9</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(4;1)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(3;0)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(2;1)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;4)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;3)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;2)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;1)</td><td style="padding:3px 7px;border:1px solid rgba(100,60,20,.15);">(1;0)</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <div class="card">
+        <h2>📌 Exemple : 9 573 ÷ 4</h2>
+        <div class="step-seq">
+          <div class="step-item"><div class="step-num">1</div><div>Écrire <strong>9 5 7 3 … 4</strong>. 9÷4 → quotient 2, reste 1. Écrire <strong>2</strong> à gauche, remplacer 9 par 1.</div></div>
+          <div class="step-item"><div class="step-num">2</div><div>1÷4 → (2;2) — changer de colonne. Remplacer 1 par 0, ajouter 2 à droite → <strong>0 7 7 3</strong>.</div></div>
+          <div class="step-item"><div class="step-num">3</div><div>7÷4 → (1;3). Ajouter 1 au quotient, remplacer 7 par 3 → <strong>0 3 7 3</strong>.</div></div>
+          <div class="step-item"><div class="step-num">4</div><div>3÷4 → (7;2) — changer de colonne. → <strong>0 0 9 3</strong>.</div></div>
+          <div class="step-item"><div class="step-num">5</div><div>9÷4 → (2;1). → <strong>0 0 1 3</strong>.</div></div>
+          <div class="step-item"><div class="step-num">6</div><div>1÷4 → (2;2). → <strong>0 0 0 5</strong>.</div></div>
+          <div class="step-item"><div class="step-num">7</div><div>5÷4 → (1;1). → <strong>0 0 0 1</strong>. Quotient = <strong>2 393</strong>, reste = <strong>1</strong>.</div></div>
+        </div>
+        <div class="highlight"><strong>Nombres à virgule :</strong> Identifier la colonne unité dans le dividende et dans le quotient. Pour diviser par un nombre à virgule, d'abord diviser par l'entier, puis multiplier par la puissance de 10 adéquate.</div>
+      </div>
+    </div>
+
+    <!-- LEÇON 8 : EXERCICES DIVISION -->
+    <div class="wiki-lecon" id="lecon-8">
+      <div class="card">
+        <h2>🏋️ Leçon 8 — Exercices de divisions</h2>
+        <div class="highlight">Pour chaque exercice, les étapes successives des colonnes de quotient et de reste sont fournies.</div>
+      </div>
+      <div class="card">
+        <h2>Divisions par un chiffre</h2>
+        <div style="overflow-x:auto;">
+        <table style="border-collapse:collapse;font-size:.82rem;font-family:monospace;width:100%;">
+          <thead><tr style="background:rgba(200,133,74,.15);"><th style="padding:5px 8px;text-align:left;">Opération</th><th style="padding:5px 8px;text-align:right;">Résultat</th></tr></thead>
+          <tbody>
+            <tr><td style="padding:3px 8px;">6 319 ÷ 7</td><td style="padding:3px 8px;text-align:right;font-weight:700;">902 reste 5</td></tr>
+            <tr style="background:rgba(0,0,0,.03);"><td style="padding:3px 8px;">12 084 ÷ 3</td><td style="padding:3px 8px;text-align:right;font-weight:700;">4 028 reste 0</td></tr>
+            <tr><td style="padding:3px 8px;">2 359 ÷ 6</td><td style="padding:3px 8px;text-align:right;font-weight:700;">393 reste 1</td></tr>
+            <tr style="background:rgba(0,0,0,.03);"><td style="padding:3px 8px;">7 653 ÷ 4</td><td style="padding:3px 8px;text-align:right;font-weight:700;">1 913 reste 1</td></tr>
+            <tr><td style="padding:3px 8px;">3 256 ÷ 9</td><td style="padding:3px 8px;text-align:right;font-weight:700;">361 reste 7</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Divisions par deux chiffres</h2>
+        <div style="overflow-x:auto;">
+        <table style="border-collapse:collapse;font-size:.82rem;font-family:monospace;width:100%;">
+          <thead><tr style="background:rgba(200,133,74,.15);"><th style="padding:5px 8px;text-align:left;">Opération</th><th style="padding:5px 8px;text-align:right;">Résultat</th></tr></thead>
+          <tbody>
+            <tr><td style="padding:3px 8px;">4 312 ÷ 28</td><td style="padding:3px 8px;text-align:right;font-weight:700;">154 reste 0</td></tr>
+            <tr style="background:rgba(0,0,0,.03);"><td style="padding:3px 8px;">7 212 ÷ 13</td><td style="padding:3px 8px;text-align:right;font-weight:700;">554 reste 10</td></tr>
+            <tr><td style="padding:3px 8px;">40 003 ÷ 27</td><td style="padding:3px 8px;text-align:right;font-weight:700;">1 481 reste 16</td></tr>
+            <tr style="background:rgba(0,0,0,.03);"><td style="padding:3px 8px;">4 321 ÷ 11</td><td style="padding:3px 8px;text-align:right;font-weight:700;">392 reste 9</td></tr>
+            <tr><td style="padding:3px 8px;">1 234 ÷ 72</td><td style="padding:3px 8px;text-align:right;font-weight:700;">17 reste 10</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Divisions à virgule</h2>
+        <div style="overflow-x:auto;">
+        <table style="border-collapse:collapse;font-size:.82rem;font-family:monospace;width:100%;">
+          <thead><tr style="background:rgba(200,133,74,.15);"><th style="padding:5px 8px;text-align:left;">Opération</th><th style="padding:5px 8px;text-align:right;">Résultat</th></tr></thead>
+          <tbody>
+            <tr><td style="padding:3px 8px;">53,000 ÷ 8</td><td style="padding:3px 8px;text-align:right;font-weight:700;">6,625</td></tr>
+            <tr style="background:rgba(0,0,0,.03);"><td style="padding:3px 8px;">123,000 ÷ 7</td><td style="padding:3px 8px;text-align:right;font-weight:700;">17,571…</td></tr>
+            <tr><td style="padding:3px 8px;">12,58 ÷ 13</td><td style="padding:3px 8px;text-align:right;font-weight:700;">0,968…</td></tr>
+            <tr style="background:rgba(0,0,0,.03);"><td style="padding:3px 8px;">925,700 ÷ 83</td><td style="padding:3px 8px;text-align:right;font-weight:700;">11,153…</td></tr>
+            <tr><td style="padding:3px 8px;">83,58 ÷ 3,2</td><td style="padding:3px 8px;text-align:right;font-weight:700;">26,1…</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEÇON 9 : HEXADÉCIMAL -->
+    <div class="wiki-lecon" id="lecon-9">
+      <div class="card">
+        <h2>🔣 Leçon 9 — La base hexadécimale</h2>
+        <p>Le <strong>boulier chinois</strong> (2 quinaires + 5 unaires par colonne) permet d'écrire les chiffres de 0 à 15, et donc de travailler en <strong>base 16 (hexadécimale)</strong>.</p>
+        <div class="highlight">
+          Les 16 chiffres : 0 1 2 3 4 5 6 7 8 9 <strong>A(10) B(11) C(12) D(13) E(14) F(15)</strong>
+        </div>
+        <p>L'écriture des nombres est identique à la base 10 : chaque colonne reçoit sa puissance de 16. Exemple : <strong>1DF3</strong> = 1 × 16³ + 13 × 16² + 15 × 16 + 3 = <strong>7 667</strong>.</p>
+      </div>
+      <div class="card">
+        <h2>🔄 Conversions</h2>
+        <h3>Décimal → Hexadécimal</h3>
+        <div class="step-seq">
+          <div class="step-item"><div class="step-num">1</div><div>Écrire le nombre décimal (ex : 3 565).</div></div>
+          <div class="step-item"><div class="step-num">2</div><div>Diviser par 16 → quotient 222, reste <strong>D (13)</strong>.</div></div>
+          <div class="step-item"><div class="step-num">3</div><div>Diviser 222 par 16 → quotient 13, reste <strong>E (14)</strong>.</div></div>
+          <div class="step-item"><div class="step-num">4</div><div>Convertir 13 → <strong>D</strong>. Résultat : <strong>DED</strong>.</div></div>
+        </div>
+        <h3>Hexadécimal → Décimal</h3>
+        <div class="step-seq">
+          <div class="step-item"><div class="step-num">1</div><div>Écrire 1DF3. Multiplier 1 par 16 = 16.</div></div>
+          <div class="step-item"><div class="step-num">2</div><div>Ajouter D(13) = 29. Multiplier par 16 = 464.</div></div>
+          <div class="step-item"><div class="step-num">3</div><div>Ajouter F(15) = 479. Multiplier par 16 = 7 664.</div></div>
+          <div class="step-item"><div class="step-num">4</div><div>Ajouter 3 = <strong>7 667</strong>.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEÇON 10 : EXERCICES HEX -->
+    <div class="wiki-lecon" id="lecon-10">
+      <div class="card">
+        <h2>🏋️ Leçon 10 — Exercices hexadécimaux</h2>
+        <div class="highlight">Additions et soustractions en base 16. Résultats à vérifier avec un boulier chinois.</div>
+      </div>
+      <div class="card">
+        <h2>Additions</h2>
+        <div style="overflow-x:auto;">
+        <table style="border-collapse:collapse;font-size:.82rem;font-family:monospace;width:100%;">
+          <thead><tr style="background:rgba(200,133,74,.15);"><th style="padding:5px 8px;">Colonne 1</th><th style="padding:5px 8px;">Colonne 2</th><th style="padding:5px 8px;">Colonne 3</th><th style="padding:5px 8px;">Colonne 4</th></tr></thead>
+          <tbody>
+            <tr><td style="padding:3px 8px;">5FE</td><td style="padding:3px 8px;">356</td><td style="padding:3px 8px;">292</td><td style="padding:3px 8px;">2AD</td></tr>
+            <tr><td style="padding:3px 8px;">+ FD</td><td style="padding:3px 8px;">+ 9D</td><td style="padding:3px 8px;">+ D6</td><td style="padding:3px 8px;">+ 53</td></tr>
+            <tr><td style="padding:3px 8px;">+ 98</td><td style="padding:3px 8px;">+ 360</td><td style="padding:3px 8px;">+ FA0</td><td style="padding:3px 8px;">+ 39C</td></tr>
+            <tr><td style="padding:3px 8px;">+ 19</td><td style="padding:3px 8px;">+ 54D</td><td style="padding:3px 8px;">+ 48</td><td style="padding:3px 8px;">+ 3A</td></tr>
+            <tr><td style="padding:3px 8px;">+ 312</td><td style="padding:3px 8px;">+ 79C</td><td style="padding:3px 8px;">+ EB</td><td style="padding:3px 8px;">+ 264</td></tr>
+            <tr style="font-weight:700;border-top:1px solid #c8854a;color:#5a3010;"><td style="padding:4px 8px;">= ABE</td><td style="padding:4px 8px;">= 143C</td><td style="padding:4px 8px;">= 143B</td><td style="padding:4px 8px;">= 93A</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Conversions (décimal ↔ hexadécimal)</h2>
+        <div style="overflow-x:auto;">
+        <table style="border-collapse:collapse;font-size:.82rem;font-family:monospace;width:100%;">
+          <thead><tr style="background:rgba(200,133,74,.15);"><th style="padding:5px 8px;">Décimal</th><th style="padding:5px 8px;">= Hex</th><th style="padding:5px 8px;">Décimal</th><th style="padding:5px 8px;">= Hex</th></tr></thead>
+          <tbody>
+            <tr><td style="padding:3px 8px;">484</td><td style="padding:3px 8px;font-weight:700;">1E4</td><td style="padding:3px 8px;">657</td><td style="padding:3px 8px;font-weight:700;">291</td></tr>
+            <tr style="background:rgba(0,0,0,.03);"><td style="padding:3px 8px;">284</td><td style="padding:3px 8px;font-weight:700;">11C</td><td style="padding:3px 8px;">65</td><td style="padding:3px 8px;font-weight:700;">41</td></tr>
+            <tr><td style="padding:3px 8px;">582</td><td style="padding:3px 8px;font-weight:700;">246</td><td style="padding:3px 8px;">5 817</td><td style="padding:3px 8px;font-weight:700;">16B9</td></tr>
+            <tr style="background:rgba(0,0,0,.03);"><td style="padding:3px 8px;">789</td><td style="padding:3px 8px;font-weight:700;">315</td><td style="padding:3px 8px;">708</td><td style="padding:3px 8px;font-weight:700;">2C4</td></tr>
+            <tr><td style="padding:3px 8px;">1 000</td><td style="padding:3px 8px;font-weight:700;">3E8</td><td style="padding:3px 8px;">1 534</td><td style="padding:3px 8px;font-weight:700;">5FE</td></tr>
+          </tbody>
+        </table>
+        </div>
+        <p style="font-size:.75rem;color:#7a5030;margin-top:12px;text-align:center;">Source : <em>S'initier au boulier en 10 leçons</em> — Wikilivres, licence GFDL / CC BY-SA.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- §8  NOTICE D'UTILISATION              -->
+  <!-- ══════════════════════════════════════ -->
+  <div class="section" id="tab-notice">
+
+    <div class="doc-banner">
+      <span class="doc-icon">📄</span>
+      <span><strong>Notice d'utilisation</strong> — Guide pratique de manipulation du soroban physique. Adapté de Yellow Mountain Imports par CilMac &amp; Claude. Contenu de référence, distinct du tutoriel interactif.</span>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;justify-content:center;">
+      <button class="quiz-btn secondary" onclick="showNotice('compter')">🔢 Compter</button>
+      <button class="quiz-btn secondary" onclick="showNotice('addition')">➕ Addition</button>
+      <button class="quiz-btn secondary" onclick="showNotice('soustraction')">➖ Soustraction</button>
+      <button class="quiz-btn secondary" onclick="showNotice('multiplication')">✖️ Multiplication</button>
+      <button class="quiz-btn secondary" onclick="showNotice('division')">➗ Division</button>
+    </div>
+
+    <!-- COMPTER -->
+    <div class="notice-part active" id="notice-compter">
+
+      <div class="card">
+        <div class="part-badge">Partie 1 · Comptage</div>
+        <h2>🔢 Positionner le boulier</h2>
+        <p>Chaque <strong>colonne</strong> du soroban représente une valeur de position. De droite à gauche : unités, dizaines, centaines, milliers, etc.</p>
+        <p>Il est également possible de représenter des <strong>valeurs décimales</strong> :</p>
+        <ul>
+          <li>Pour <strong>12,5</strong> → colonne la plus à droite = dixièmes, suivie des unités, puis des dizaines.</li>
+          <li>Pour <strong>12,55</strong> → colonne la plus à droite = centièmes, puis dixièmes, unités, dizaines.</li>
+        </ul>
+        <div class="mini-soroban-wrap">
+          <svg id="noticeSVG" width="340" height="200"></svg>
+        </div>
+        <table class="op-table">
+          <tr><th>Position</th><th>Boule du haut</th><th>Boules du bas</th></tr>
+          <tr><td>Par défaut</td><td>En haut (inactive)</td><td>En bas (inactives)</td></tr>
+          <tr><td>Valeur</td><td>= <strong>5</strong></td><td>= <strong>1</strong> chacune</td></tr>
+        </table>
+        <div class="highlight">
+          ☝️ <strong>Principe fondamental :</strong> une boule est <strong>active</strong> uniquement quand elle <em>touche la barre centrale</em>. Ciel active = descendue · Terres actives = montées.<br><br>💡 <strong>Doigts :</strong> Utilisez <strong>pouce + index</strong> pour les boules du bas (pouce pousse vers le haut, index ramène vers le bas), et <strong>l'index seul</strong> pour la boule du haut.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>1️⃣ Compter de 1 à 4</h2>
+        <p>On n'utilise que la <strong>rangée du bas</strong> (boules terre).</p>
+        <div class="bead-grid">
+          <div class="bead-card"><div class="bead-num">1</div><div class="bead-desc">1 terre<br>montée</div></div>
+          <div class="bead-card"><div class="bead-num">2</div><div class="bead-desc">2 terres<br>montées</div></div>
+          <div class="bead-card"><div class="bead-num">3</div><div class="bead-desc">3 terres<br>montées</div></div>
+          <div class="bead-card"><div class="bead-num">4</div><div class="bead-desc">4 terres<br>montées</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>5️⃣ Compter de 5 à 9</h2>
+        <p>On utilise <strong>les deux rangées</strong> : la boule ciel (haut) vaut 5, et les boules terre (bas) valent 1 chacune.</p>
+        <div class="bead-grid">
+          <div class="bead-card"><div class="bead-num">5</div><div class="bead-desc">ciel<br>descendu</div></div>
+          <div class="bead-card"><div class="bead-num">6</div><div class="bead-desc">ciel +<br>1 terre</div></div>
+          <div class="bead-card"><div class="bead-num">7</div><div class="bead-desc">ciel +<br>2 terres</div></div>
+          <div class="bead-card"><div class="bead-num">8</div><div class="bead-desc">ciel +<br>3 terres</div></div>
+          <div class="bead-card"><div class="bead-num">9</div><div class="bead-desc">ciel +<br>4 terres</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🔄 Répéter pour chaque colonne</h2>
+        <p>Le principe est <strong>identique pour chaque colonne</strong> : vous utilisez les boules pour représenter chaque chiffre selon sa position décimale.</p>
+        <div class="example-box">
+          <strong>Exemple :</strong> « Dix » → une boule inférieure montée dans la colonne des <em>dizaines</em> (boule du haut inactive).<br>
+          « Onze » → idem + une boule inférieure supplémentaire dans la colonne des <em>unités</em>.<br>
+          Et ainsi de suite pour les centaines, milliers, etc.
+        </div>
+      </div>
+
+    </div><!-- /notice-compter -->
+
+    <!-- ADDITION -->
+    <div class="notice-part" id="notice-addition">
+
+      <div class="card">
+        <div class="part-badge">Partie 2 · Addition</div>
+        <h2>➕ Entrer le premier nombre</h2>
+        <p>Posez le premier opérande colonne par colonne sur le soroban.</p>
+        <div class="example-box">
+          <strong>Exemple :</strong> 2 145<br>
+          → 2 boules dans les <em>milliers</em> · 1 dans les <em>centaines</em> · 4 dans les <em>dizaines</em> · 5 dans les <em>unités</em>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>⬅️ Commencer par la gauche</h2>
+        <p>Travaillez toujours <strong>de gauche à droite</strong>, des plus grandes valeurs vers les plus petites.</p>
+        <div class="step-seq">
+          <div class="step-item"><div class="step-num">1</div><div><strong>Milliers :</strong> 2 + 5 = <strong>7</strong> → poser 7.</div></div>
+          <div class="step-item"><div class="step-num">2</div><div><strong>Centaines :</strong> 1 + 6 = <strong>7</strong> → poser 7.</div></div>
+          <div class="step-item"><div class="step-num">3</div><div><strong>Dizaines :</strong> 4 + 6 = 10 → poser <strong>0</strong>, report <strong>+1</strong> aux centaines → centaines deviennent 8.</div></div>
+          <div class="step-item"><div class="step-num">4</div><div><strong>Unités :</strong> 5 + 8 = 13 → poser <strong>3</strong>, report <strong>+1</strong> aux dizaines → dizaines deviennent 1.</div></div>
+        </div>
+        <div class="example-box"><strong>2 145 + 5 668 = 7 813 ✓</strong></div>
+      </div>
+
+      <div class="card">
+        <h2>↪️ Reports lors de l'addition</h2>
+        <p>Quand le total <strong>dépasse 9</strong>, on inscrit le chiffre des unités et on ajoute 1 à la colonne de gauche.</p>
+        <table class="op-table">
+          <tr><th>Opération</th><th>Résultat colonne</th><th>Report</th></tr>
+          <tr><td>4 + 6 = 10</td><td><strong>0</strong></td><td>+1 à la colonne gauche</td></tr>
+          <tr><td>5 + 8 = 13</td><td><strong>3</strong></td><td>+1 à la colonne gauche</td></tr>
+          <tr><td>7 + 5 = 12</td><td><strong>2</strong></td><td>+1 à la colonne gauche</td></tr>
+        </table>
+        <div class="highlight">💡 Lisez toujours les colonnes de <strong>gauche à droite</strong> pour former le résultat final.</div>
+      </div>
+
+    </div><!-- /notice-addition -->
+
+    <!-- SOUSTRACTION -->
+    <div class="notice-part" id="notice-soustraction">
+
+      <div class="card">
+        <div class="part-badge">Partie 2 · Soustraction</div>
+        <h2>➖ Processus inverse de l'addition</h2>
+        <p>La soustraction suit la <strong>même logique</strong> que l'addition, mais en <em>retirant</em> les boules au lieu d'en ajouter. On travaille également de gauche à droite.</p>
+      </div>
+
+      <div class="card">
+        <h2>🔄 Emprunter à la colonne de gauche</h2>
+        <p>Si l'on <strong>ne peut pas soustraire directement</strong> (colonne insuffisante), on emprunte 1 unité à la colonne de gauche, ce qui équivaut à ajouter 10 à la colonne courante.</p>
+        <div class="step-seq">
+          <div class="step-item"><div class="step-num">1</div><div>Poser le nombre de départ sur le soroban.</div></div>
+          <div class="step-item"><div class="step-num">2</div><div>Soustraire chiffre par chiffre, de gauche à droite.</div></div>
+          <div class="step-item"><div class="step-num">3</div><div>Si la colonne n'a pas assez de boules actives → <strong>emprunter 1</strong> à la colonne de gauche et ajouter <strong>10</strong> à la colonne courante.</div></div>
+          <div class="step-item"><div class="step-num">4</div><div>Lire le résultat de gauche à droite.</div></div>
+        </div>
+        <div class="example-box">
+          <strong>Exemple :</strong> 845 − 788 = 57<br><br>
+          • Centaines : 8 − 7 = <strong>1</strong><br>
+          • Dizaines : 4 − 8 → impossible. Emprunter +1 aux centaines (centaines → 0). 14 − 8 = <strong>6</strong><br>
+          • Unités : 5 − 8 → impossible. Emprunter +1 aux dizaines (dizaines → 5). 15 − 8 = <strong>7</strong><br>
+          → Résultat : <strong>057 = 57 ✓</strong>
+        </div>
+        <div class="highlight">💡 Chaque emprunt <strong>décrémente de 1</strong> la colonne de gauche et ajoute <strong>10</strong> à la colonne courante avant de soustraire.</div>
+      </div>
+
+    </div><!-- /notice-soustraction -->
+
+    <!-- MULTIPLICATION -->
+    <div class="notice-part" id="notice-multiplication">
+
+      <div class="card">
+        <div class="part-badge">Partie 3 · Multiplication</div>
+        <h2>✖️ Disposition initiale</h2>
+        <p>Disposez les colonnes sur le soroban dans l'ordre suivant :</p>
+        <div class="div-layout">
+          <div class="div-box"><div class="db-label">1er facteur</div><div class="db-val">ex : 43</div></div>
+          <div class="div-sep">×</div>
+          <div class="div-box"><div class="db-label">vide</div><div class="db-val">—</div></div>
+          <div class="div-sep">·</div>
+          <div class="div-box"><div class="db-label">2e facteur</div><div class="db-val">ex : 13</div></div>
+          <div class="div-sep">·</div>
+          <div class="div-box"><div class="db-label">vide (=)</div><div class="db-val">—</div></div>
+        </div>
+        <p>La colonne vide sert de séparateur visuel entre les opérandes et la zone résultat.</p>
+      </div>
+
+      <div class="card">
+        <h2>🔀 Multiplications croisées</h2>
+        <p>Pour multiplier deux nombres à deux chiffres, effectuez <strong>quatre multiplications partielles</strong> dans l'ordre :</p>
+        <table class="op-table">
+          <tr><th>Étape</th><th>Opération</th><th>Description</th></tr>
+          <tr><td><strong>a)</strong></td><td>Dizaines × Dizaines</td><td>Première multiplication partielle</td></tr>
+          <tr><td><strong>b)</strong></td><td>Dizaines × Unités</td><td>Deuxième multiplication partielle</td></tr>
+          <tr><td><strong>c)</strong></td><td>Unités × Dizaines</td><td>Troisième multiplication partielle</td></tr>
+          <tr><td><strong>d)</strong></td><td>Unités × Unités</td><td>Quatrième multiplication partielle</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>📝 Enregistrer les produits partiels</h2>
+        <p>Multipliez chaque paire, inscrivez le résultat et <strong>ajoutez les retenues</strong> au fur et à mesure.</p>
+        <div class="example-box">
+          <strong>Exemple : 43 × 13</strong><br><br>
+          a) 40 × 10 = <strong>400</strong><br>
+          b) 40 × 3 = <strong>120</strong> → cumul : 520<br>
+          c) 3 × 10 = <strong>30</strong> → cumul : 550<br>
+          d) 3 × 3 = <strong>9</strong> → cumul : <strong>559</strong><br><br>
+          <strong>43 × 13 = 559 ✓</strong>
+        </div>
+        <div class="highlight">💡 Inscrivez chaque produit partiel <em>à la bonne position décimale</em> sur le soroban. Les produits partiels s'accumulent par addition successive.</div>
+      </div>
+
+    </div><!-- /notice-multiplication -->
+
+    <!-- DIVISION -->
+    <div class="notice-part" id="notice-division">
+
+      <div class="card">
+        <div class="part-badge">Partie 4 · Division</div>
+        <h2>➗ Disposition initiale</h2>
+        <p>Disposez les colonnes dans l'ordre suivant :</p>
+        <div class="div-layout">
+          <div class="div-box"><div class="db-label">Diviseur</div><div class="db-val">ex : 3</div></div>
+          <div class="div-sep">|</div>
+          <div class="div-box"><div class="db-label">Quotient</div><div class="db-val">résultat</div></div>
+          <div class="div-sep">|</div>
+          <div class="div-box"><div class="db-label">Dividende</div><div class="db-val">ex : 78</div></div>
+        </div>
+        <div class="example-box"><strong>Exemple : 78 ÷ 3</strong><br>Disposez : <code>3</code> | quotient | <code>78</code></div>
+      </div>
+
+      <div class="card">
+        <h2>1️⃣ Inscrire le premier chiffre du quotient</h2>
+        <p>Demandez-vous <strong>combien de fois</strong> le diviseur entre dans le premier chiffre du dividende.</p>
+        <div class="step-seq">
+          <div class="step-item"><div class="step-num">Q</div><div>Combien de fois 3 entre-t-il dans 7 ? → <strong>2 fois</strong> → inscrivez <strong>2</strong> dans le quotient.</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>2️⃣ Calculer le reste</h2>
+        <p>Multipliez le chiffre du quotient par le diviseur, puis <strong>soustrayez</strong> au dividende partiel.</p>
+        <table class="op-table">
+          <tr><th>Calcul</th><th>Résultat</th><th>Action</th></tr>
+          <tr><td>3 × 2 = 6</td><td>Produit = 6</td><td>—</td></tr>
+          <tr><td>7 − 6 = 1</td><td>Reste = 1</td><td>Le nouveau dividende partiel devient <strong>18</strong></td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>🔁 Répéter le processus</h2>
+        <p>Continuez jusqu'à ce que <strong>tout le dividende</strong> soit traité.</p>
+        <div class="step-seq">
+          <div class="step-item"><div class="step-num">▸</div><div>18 ÷ 3 = <strong>6</strong> → inscrire 6 dans le quotient.</div></div>
+          <div class="step-item"><div class="step-num">▸</div><div>3 × 6 = 18 → reste = 0 → division terminée.</div></div>
+        </div>
+        <div class="example-box"><strong>78 ÷ 3 = 26 ✓</strong></div>
+        <div class="highlight">💡 <strong>Astuce :</strong> En cas de <strong>reste non nul</strong> à la fin, il constitue le reste de la division euclidienne.<br>Ex : 79 ÷ 3 = 26 reste <strong>1</strong>.</div>
+      </div>
+
+    </div><!-- /notice-division -->
+
+  </div><!-- /tab-notice -->
+
+</div><!-- /content -->
+
+<script>
+// ══════════════════════════════════════════════════════════
+//  NAVIGATION TABS
+// ══════════════════════════════════════════════════════════
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+
+  // Initialiser les SVG lazily
+  if (id === 'anatomie' && !anatomyBuilt) buildAnatomySVG();
+  if (id === 'lire' && !readQuizBuilt) { newReadQuiz(); buildPoseDemo(0); readQuizBuilt = true; }
+  // Wikilivres : afficher leçon 0 par défaut si première fois
+  if (id === 'wikilivres') showLecon(0);
+  // Notice : afficher Compter par défaut + dessiner SVG si besoin
+  if (id === 'notice') { showNotice('compter'); requestAnimationFrame(drawNoticeSVG); }
+}
+
+function showLecon(n) {
+  document.querySelectorAll('.wiki-lecon').forEach(l => l.classList.remove('active'));
+  const el = document.getElementById('lecon-' + n);
+  if (el) el.classList.add('active');
+  window.scrollTo({ top: document.querySelector('.nav-tabs').offsetTop - 10, behavior: 'smooth' });
+}
+
+// ══════════════════════════════════════════════════════════
+//  SVG HELPERS
+// ══════════════════════════════════════════════════════════
+const NS = 'http://www.w3.org/2000/svg';
+function mk(tag, attrs, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k,v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+
+// ══════════════════════════════════════════════════════════
+//  MINI SOROBAN COLUMN — dessin d'une colonne
+// ══════════════════════════════════════════════════════════
+function drawMiniColumn(svg, cx, W, H, heaven, earth, opts={}) {
+  // W = largeur colonne, H = hauteur totale
+  const FPT=8, FPB=8, BAR_H=5;
+  const BH = Math.round((H - FPT - FPB - BAR_H) / 7);
+  const BW = W - 4;
+  const Y_BAR = FPT + 2*BH;
+  const Y_EZ  = Y_BAR + BAR_H;
+
+  // tige
+  const rodW = Math.max(2, BW * 0.1);
+  mk('rect', {x:cx-rodW/2, y:FPT, width:rodW, height:H-FPT-FPB,
+    rx:rodW/2, fill:'rgba(160,100,40,.6)'}, svg);
+
+  // barre
+  if (opts.drawBar !== false) {
+    mk('rect', {x:cx-BW/2-2, y:Y_BAR, width:BW+4, height:BAR_H,
+      fill:'#c0c8d8', rx:1}, svg);
+  }
+
+  // perle ciel
+  const hActive = heaven === 1;
+  const hY = hActive ? Y_BAR - BH/2 : FPT + BH/2;
+  drawMiniBeadAt(svg, cx, hY, BW, BH, opts.highlightHeaven);
+
+  // perles terre
+  const n = earth;
+  for (let i=1; i<=4; i++) {
+    const eActive = i<=n;
+    const eY = eActive ? Y_EZ+(i-1)*BH+BH/2 : Y_EZ+i*BH+BH/2;
+    drawMiniBeadAt(svg, cx, eY, BW, BH, opts.highlightEarth && eActive);
+  }
+}
+
+function drawMiniBeadAt(svg, cx, cy, BW, BH, highlight) {
+  const rw = BW/2 - 1;
+  const rh = BH/2;
+  const bx = rw * 0.55;
+  const d = [
+    `M ${cx} ${cy-rh}`,
+    `C ${cx+bx} ${cy-rh}, ${cx+rw} ${cy-rh*0.3}, ${cx+rw} ${cy}`,
+    `C ${cx+rw} ${cy+rh*0.3}, ${cx+bx} ${cy+rh}, ${cx} ${cy+rh}`,
+    `C ${cx-bx} ${cy+rh}, ${cx-rw} ${cy+rh*0.3}, ${cx-rw} ${cy}`,
+    `C ${cx-rw} ${cy-rh*0.3}, ${cx-bx} ${cy-rh}, ${cx} ${cy-rh}`,
+    'Z'
+  ].join(' ');
+  const fill = highlight ? '#e0a060' : 'url(#miniGrad)';
+  mk('path', {d, fill}, svg);
+  if (highlight) mk('ellipse', {cx, cy, rx:rw*0.85, ry:rh*0.07, fill:'rgba(28,8,2,.4)'}, svg);
+}
+
+function ensureMiniGrad(svg) {
+  if (svg.querySelector('#miniGrad')) return;
+  const defs = mk('defs', {}, svg);
+  const gr = mk('radialGradient', {id:'miniGrad', cx:'36%', cy:'28%', r:'56%', fx:'36%', fy:'28%'}, defs);
+  mk('stop', {'offset':'0%',  'stop-color':'#d89458'}, gr);
+  mk('stop', {'offset':'25%', 'stop-color':'#b86420'}, gr);
+  mk('stop', {'offset':'62%', 'stop-color':'#7c3c10'}, gr);
+  mk('stop', {'offset':'100%','stop-color':'#3c1404'}, gr);
+}
+
+function drawSingleColumnSVG(svgEl, heaven, earth) {
+  svgEl.innerHTML = '';
+  const W = 60, H = parseInt(svgEl.getAttribute('height')) || 160;
+  svgEl.setAttribute('width', W);
+  svgEl.setAttribute('height', H);
+  ensureMiniGrad(svgEl);
+
+  // fond
+  mk('rect', {x:2, y:2, width:W-4, height:H-4, rx:5, fill:'#f0e8d8', stroke:'#c8a060', 'stroke-width':1}, svgEl);
+  // barre
+  const FPT=8, BAR_H=5;
+  const BH = Math.round((H-FPT-8-BAR_H)/7);
+  mk('rect', {x:2, y:FPT+2*BH, width:W-4, height:BAR_H, fill:'#c0c8d8', rx:1}, svgEl);
+  drawMiniColumn(svgEl, W/2, W-4, H, heaven, earth, {drawBar:false});
+}
+
+// ══════════════════════════════════════════════════════════
+//  ANATOMIE SVG
+// ══════════════════════════════════════════════════════════
+let anatomyBuilt = false;
+
+function buildAnatomySVG() {
+  anatomyBuilt = true;
+  const svg = document.getElementById('anatomySVG');
+  const W = 340, H = 200;
+  svg.innerHTML = '';
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  ensureMiniGrad(svg);
+
+  // cadre
+  const defs2 = svg.querySelector('defs') || mk('defs', {}, svg);
+  const gFr = mk('linearGradient', {id:'aGFr', x1:'0',y1:'0',x2:'0',y2:'1'}, defs2);
+  mk('stop',{'offset':'0%','stop-color':'#282020'}, gFr);
+  mk('stop',{'offset':'100%','stop-color':'#060404'}, gFr);
+  mk('rect', {x:0,y:0,width:W,height:H,rx:8,fill:'url(#aGFr)',stroke:'#1a1010','stroke-width':1.5}, svg);
+
+  // fond intérieur
+  mk('rect', {x:8,y:8,width:W-16,height:H-16,rx:4,fill:'#ede4d0'}, svg);
+
+  // colonnes (5 colonnes pour l'illustration)
+  const nCols=5, FPX=16, FPT=10, FPB=10, BAR_H=6;
+  const colW = Math.floor((W-2*FPX)/nCols);
+  const BH = Math.round((H-FPT-FPB-BAR_H)/7);
+  const Y_BAR = FPT+2*BH, Y_EZ = Y_BAR+BAR_H;
+
+  // barre métal
+  const gBar = mk('linearGradient', {id:'aGBar',x1:'0',y1:'0',x2:'0',y2:'1'}, defs2);
+  mk('stop',{'offset':'0%','stop-color':'#e8e8f0'}, gBar);
+  mk('stop',{'offset':'50%','stop-color':'#d8dce8'}, gBar);
+  mk('stop',{'offset':'100%','stop-color':'#b0b8c8'}, gBar);
+  mk('rect', {x:FPX-4,y:Y_BAR,width:W-2*(FPX-4),height:BAR_H,fill:'url(#aGBar)',rx:1}, svg);
+
+  // valeurs exemple : 3, 7, 0, 5, 2
+  const vals = [3, 7, 0, 5, 2];
+  for (let c=0; c<nCols; c++) {
+    const cx = FPX + c*colW + colW/2;
+    const v = vals[c];
+    const h = v>=5?1:0, e = v>=5?v-5:v;
+    drawMiniColumn(svg, cx, colW-2, H, h, e, {drawBar:false});
+  }
+
+  // annotations cliquables
+  const annotations = [
+    { x:10, y:14, w:W-20, h:14, label:'Cadre laqué', key:'cadre' },
+    { x:10, y:Y_BAR-2, w:W-20, h:BAR_H+4, label:'Barre centrale', key:'barre' },
+    { x:10, y:FPT, w:W-20, h:2*BH, label:'Zone ciel (heaven)', key:'heaven' },
+    { x:10, y:Y_EZ, w:W-20, h:5*BH, label:'Zone terre (earth)', key:'earth' },
+  ];
+
+  annotations.forEach(a => {
+    const r = mk('rect', {
+      x:a.x, y:a.y, width:a.w, height:a.h,
+      fill:'transparent',
+      stroke:'transparent',
+      'stroke-width':1,
+      cursor:'pointer',
+      rx:3
+    }, svg);
+    r.addEventListener('mouseenter', () => {
+      r.setAttribute('fill', 'rgba(200,133,74,.15)');
+      r.setAttribute('stroke', 'rgba(200,133,74,.4)');
+    });
+    r.addEventListener('mouseleave', () => {
+      r.setAttribute('fill', 'transparent');
+      r.setAttribute('stroke', 'transparent');
+    });
+    r.addEventListener('click', () => showAnatomyHint(a.key));
+    r.addEventListener('touchend', e => { e.preventDefault(); showAnatomyHint(a.key); });
+  });
+
+  // étiquettes fixes
+  const labels = [
+    { x:W-6, y:Y_BAR+BAR_H/2+1, text:'— Barre', anchor:'end', fill:'#c0c8d8', size:9 },
+    { x:W-6, y:FPT+BH, text:'☁ Ciel', anchor:'end', fill:'#8090b0', size:8 },
+    { x:W-6, y:Y_EZ+2*BH, text:'🌍 Terre', anchor:'end', fill:'#a07850', size:8 },
+  ];
+  labels.forEach(l => {
+    const t = mk('text', {
+      x:l.x, y:l.y,
+      'text-anchor':l.anchor||'start',
+      fill:l.fill||'#333',
+      'font-size':l.size||9,
+      'font-family':'Shippori Mincho, serif',
+      'pointer-events':'none'
+    }, svg);
+    t.textContent = l.text;
+  });
+}
+
+function showAnatomyHint(key) {
+  const hints = {
+    cadre:  '🖼️ <strong>Cadre laqué</strong> — En bois, traditionnel laqué noir. Contient et protège les tiges et les perles.',
+    barre:  '⚡ <strong>Barre centrale</strong> — La ligne de référence. Une perle est "active" quand elle est contre cette barre.',
+    heaven: '☁ <strong>Zone ciel (heaven · 天)</strong> — 1 seule perle par colonne, qui vaut <strong>5</strong>. Active = en bas, contre la barre.',
+    earth:  '🌍 <strong>Zone terre (earth · 地)</strong> — 4 perles par colonne, valant <strong>1</strong> chacune. Actives = en haut, contre la barre.',
+  };
+  const el = document.getElementById('anatomyHint');
+  el.innerHTML = hints[key] || '';
+  el.style.display = 'block';
+  el.style.fontStyle = 'normal';
+  el.style.opacity = '1';
+}
+
+// ══════════════════════════════════════════════════════════
+//  QUIZ LECTURE
+// ══════════════════════════════════════════════════════════
+let readQuizBuilt = false;
+let quizReadTarget = 0;
+const QUIZ_COLS = 4;
+
+function newReadQuiz() {
+  quizReadTarget = Math.floor(Math.random() * 9999) + 1;
+  buildQuizReadSVG(quizReadTarget);
+  const fb = document.getElementById('quizReadFB');
+  if (fb) { fb.textContent = ''; fb.className = 'quiz-feedback'; }
+  const inp = document.getElementById('quizReadInput');
+  if (inp) { inp.value = ''; inp.focus(); }
+}
+
+function buildQuizReadSVG(n) {
+  const svg = document.getElementById('quizReadSVG');
+  if (!svg) return;
+  const W=280, H=160;
+  svg.innerHTML='';
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  ensureMiniGrad(svg);
+
+  const defs2 = svg.querySelector('defs') || mk('defs',{},svg);
+  const gFr2 = mk('linearGradient',{id:'qGFr',x1:'0',y1:'0',x2:'0',y2:'1'},defs2);
+  mk('stop',{'offset':'0%','stop-color':'#282020'},gFr2);
+  mk('stop',{'offset':'100%','stop-color':'#060404'},gFr2);
+  mk('rect',{x:0,y:0,width:W,height:H,rx:6,fill:'url(#qGFr)'},svg);
+  mk('rect',{x:6,y:6,width:W-12,height:H-12,rx:3,fill:'#ede4d0'},svg);
+
+  const FPX=12, FPT=8, FPB=8, BAR_H=5;
+  const colW = Math.floor((W-2*FPX)/QUIZ_COLS);
+  const BH = Math.round((H-FPT-FPB-BAR_H)/7);
+  const Y_BAR = FPT+2*BH;
+
+  const gBar2 = mk('linearGradient',{id:'qGBar',x1:'0',y1:'0',x2:'0',y2:'1'},defs2);
+  mk('stop',{'offset':'0%','stop-color':'#d8dce8'},gBar2);
+  mk('stop',{'offset':'100%','stop-color':'#a0a8b0'},gBar2);
+  mk('rect',{x:FPX-3,y:Y_BAR,width:W-2*(FPX-3),height:BAR_H,fill:'url(#qGBar)',rx:1},svg);
+
+  const digits = n.toString().padStart(QUIZ_COLS,'0').split('').map(Number);
+  for (let c=0; c<QUIZ_COLS; c++) {
+    const d=digits[c], h=d>=5?1:0, e=d>=5?d-5:d;
+    const cx = FPX + c*colW + colW/2;
+    drawMiniColumn(svg, cx, colW-2, H, h, e, {drawBar:false});
+  }
+}
+
+function checkReadQuiz() {
+  const inp = document.getElementById('quizReadInput');
+  const fb  = document.getElementById('quizReadFB');
+  if (!inp || !fb) return;
+  const v = parseInt(inp.value);
+  if (isNaN(v)) return;
+  if (v === quizReadTarget) {
+    fb.textContent = '✅ Correct !';
+    fb.className = 'quiz-feedback ok';
+    setTimeout(newReadQuiz, 1200);
+  } else {
+    fb.textContent = `❌ C'était ${quizReadTarget.toLocaleString('fr-FR')}`;
+    fb.className = 'quiz-feedback err';
+    setTimeout(newReadQuiz, 2000);
+  }
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const active = document.querySelector('.section.active');
+    if (active && active.id === 'tab-lire') checkReadQuiz();
+  }
+});
+
+// ══════════════════════════════════════════════════════════
+//  POSE DEMO (une colonne)
+// ══════════════════════════════════════════════════════════
+function poseDigit(d) {
+  const h = d>=5?1:0, e = d>=5?d-5:d;
+  const svg = document.getElementById('poseDemoSVG');
+  if (!svg) return;
+  drawSingleColumnSVG(svg, h, e);
+  const decomp = d===0 ? '0 = rien' : d<5 ? `${d} = ${d} terre${d>1?'s':''}` : d===5 ? '5 = ciel' : `${d} = ciel + ${d-5} terre${d-5>1?'s':''}`;
+  document.getElementById('poseDemoLabel').textContent = decomp;
+}
+
+function buildPoseDemo(d) {
+  poseDigit(d);
+}
+
+// ══════════════════════════════════════════════════════════
+//  COMPLÉMENTS
+// ══════════════════════════════════════════════════════════
+const comp5Data = {
+  1: { ex:'3 + 1 : la perle ciel est libre, mais les terres sont à 3. +5 puis −4.', steps:'Activer ciel → désactiver 4 terres → résultat : 4 (5−1=4)' },
+  2: { ex:'2 + 2 : idem. Activer ciel → désactiver 3 terres.', steps:'Activer ciel → désactiver 3 terres → résultat : 4 (5−2=3)' },
+  3: { ex:'1 + 3 : activer ciel → désactiver 2 terres.', steps:'Activer ciel → désactiver 2 terres → résultat : 4 (5−3=2)' },
+  4: { ex:'0 + 4 : activer ciel → désactiver 1 terre.', steps:'Activer ciel → désactiver 1 terre → résultat : 4 (5−4=1)' },
+};
+const comp10Data = {
+  1: { ex:'9 + 1 : col. pleine. Retenue +1 à gauche, col. courante → 0.', steps:'−9 terres (10−1=9), +1 décadaire' },
+  2: { ex:'8 + 2 : retenue +1, désactiver 8.', steps:'−8 terres (10−2=8), +1 décadaire' },
+  3: { ex:'7 + 3 : retenue +1, désactiver 7.', steps:'−7 terres (10−3=7), +1 décadaire' },
+  4: { ex:'6 + 4 : retenue +1, désactiver 6.', steps:'−6 terres (10−4=6), +1 décadaire' },
+  5: { ex:'5 + 5 : retenue +1, désactiver ciel.', steps:'−ciel (10−5=5), +1 décadaire' },
+  6: { ex:'4 + 6 : retenue +1, désactiver ciel + 1 terre.', steps:'−ciel−1 terre (10−6=4), +1 décadaire' },
+  7: { ex:'3 + 7 : retenue +1, désactiver ciel + 2 terres.', steps:'−ciel−2 terres (10−7=3), +1 décadaire' },
+  8: { ex:'2 + 8 : retenue +1, désactiver ciel + 3 terres.', steps:'−ciel−3 terres (10−8=2), +1 décadaire' },
+  9: { ex:'1 + 9 : retenue +1, désactiver ciel + 4 terres.', steps:'−ciel−4 terres (10−9=1), +1 décadaire' },
+};
+
+function showComp5(n) {
+  document.querySelectorAll('[id^=c5_]').forEach(el => el.classList.remove('active'));
+  document.getElementById('c5_'+n).classList.add('active');
+  const d = comp5Data[n];
+  const el = document.getElementById('comp5Detail');
+  el.innerHTML = `<strong>+${n} avec complément à 5 :</strong><br>${d.ex}<br><em>${d.steps}</em>`;
+  el.style.display = 'block';
+}
+function showComp10(n) {
+  document.querySelectorAll('[id^=c10_]').forEach(el => el.classList.remove('active'));
+  document.getElementById('c10_'+n).classList.add('active');
+  const d = comp10Data[n];
+  const el = document.getElementById('comp10Detail');
+  el.innerHTML = `<strong>+${n} avec complément à 10 :</strong><br>${d.ex}<br><em>${d.steps}</em>`;
+  el.style.display = 'block';
+}
+
+// ══════════════════════════════════════════════════════════
+//  TECHNIQUES DÉTAIL
+// ══════════════════════════════════════════════════════════
+const techAddData = [null,
+  { name:'T1 — Activer unaires', ex:'3+2=5 → il reste des perles terre libres → activer directement 2 perles terre.' },
+  { name:'T2 — Activer quinaire', ex:'2+5=7 → perle ciel libre → activer la perle ciel.' },
+  { name:'T3 — Quinaire + unaires', ex:'1+6=7 → activer ciel et 1 terre en même temps.' },
+  { name:'T4 — Complément à 5', ex:'3+2=5 → pas assez de terres libres mais ciel libre → +5 puis −3 terres (5−2=3).' },
+  { name:'T5 — Complément à 10', ex:'7+4=11 → débordement → retenue +1 à gauche, −6 terres (10−4=6).' },
+  { name:'T6 — Quinaire → décadaire', ex:'5+5=10 → ciel est active → désactiver ciel, retenue +1 à gauche.' },
+  { name:'T7 — Compl. 10 avec quinaire', ex:'8+5=13 → désactiver ciel+terres, retenue +1.' },
+  { name:'T8 — Unaires+quinaire→décad.', ex:'6+7=13 → activer terres, désactiver ciel, retenue +1.' },
+];
+const techSubData = [null,
+  { name:'T1 — Désactiver unaires', ex:'5−2=3 → assez de perles actives → désactiver 2 terres.' },
+  { name:'T2 — Désactiver quinaire', ex:'6−5=1 → désactiver la perle ciel.' },
+  { name:'T3 — Quinaire + unaires', ex:'8−6=2 → désactiver ciel et 1 terre.' },
+  { name:'T4 — Complément à 5', ex:'3−2=1 → pas assez de terres actives → activer (5−2=3) terres, désactiver ciel.' },
+  { name:'T5 — Complément à 10', ex:'2−7=? → emprunt → −1 à gauche, +3 terres (10−7=3).' },
+  { name:'T6 — Décad. → quinaire', ex:'5−5=0 puis emprunt → activer ciel, emprunt gauche.' },
+  { name:'T7 — Compl. 10 + quinaire', ex:'3−8=? → emprunt, activer ciel + terres.' },
+  { name:'T8 — Décad.+quinaire−unaires', ex:'7−9=? → emprunt, activer ciel, désactiver terres.' },
+];
+
+function showTech(mode, n) {
+  const data = mode==='add' ? techAddData : techSubData;
+  const id   = mode==='add' ? 'techAddDetail' : 'techSubDetail';
+  const el   = document.getElementById(id);
+  const d = data[n];
+  el.innerHTML = `<strong>${d.name}</strong><br>${d.ex}`;
+  el.style.display = 'block';
+}
+
+// ══════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════
+// Construire anatomie si onglet actif au chargement
+window.addEventListener('load', () => {
+  // anatomie est le 2e tab, pas actif par défaut → lazy
+  // Pose demo pas encore nécessaire
+});
+
+// ── NOTICE ──
+function showNotice(id) {
+  document.querySelectorAll('.notice-part').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('notice-' + id);
+  if (el) el.classList.add('active');
+}
+
+let noticeSVGBuilt = false;
+function drawNoticeSVG() {
+  noticeSVGBuilt = true;
+  const svg = document.getElementById('noticeSVG');
+  if (!svg) return;
+  const W = 340, H = 200;
+  svg.setAttribute('width', W); svg.setAttribute('height', H);
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = '';
+  ensureMiniGrad(svg);
+  const defs2 = svg.querySelector('defs') || mk('defs', {}, svg);
+  const gFr = mk('linearGradient', {id:'nGFr2', x1:'0',y1:'0',x2:'0',y2:'1'}, defs2);
+  mk('stop',{'offset':'0%','stop-color':'#282020'}, gFr);
+  mk('stop',{'offset':'100%','stop-color':'#060404'}, gFr);
+  mk('rect', {x:0,y:0,width:W,height:H,rx:8,fill:'url(#nGFr2)',stroke:'#1a1010','stroke-width':1.5}, svg);
+  mk('rect', {x:8,y:8,width:W-16,height:H-16,rx:4,fill:'#ede4d0'}, svg);
+  const nCols=5, FPX=16, FPT=10, FPB=10, BAR_H=6;
+  const colW = Math.floor((W-2*FPX)/nCols);
+  const BH = Math.round((H-FPT-FPB-BAR_H)/7);
+  const Y_BAR = FPT+2*BH;
+  const gBar = mk('linearGradient', {id:'nGBar2',x1:'0',y1:'0',x2:'0',y2:'1'}, defs2);
+  mk('stop',{'offset':'0%','stop-color':'#e8e8f0'}, gBar);
+  mk('stop',{'offset':'50%','stop-color':'#d8dce8'}, gBar);
+  mk('stop',{'offset':'100%','stop-color':'#b0b8c8'}, gBar);
+  mk('rect', {x:FPX-4,y:Y_BAR,width:W-2*(FPX-4),height:BAR_H,fill:'url(#nGBar2)',rx:1}, svg);
+  for (let c=0; c<nCols; c++) {
+    const cx = FPX + c*colW + colW/2;
+    drawMiniColumn(svg, cx, colW-2, H, 0, 0, {drawBar:false});
+  }
+}
+</script>
+
+<footer style="text-align:center; padding: 18px 0 calc(18px + env(safe-area-inset-bottom)); font-family:'Shippori Mincho',serif; font-size:.72rem; color:#9a7050; letter-spacing:.08em; opacity:.7;">
+  CilMac &amp; Claude Sonnet 4.6 · Mars 2026
+</footer>
+
+</body>
+</html>
