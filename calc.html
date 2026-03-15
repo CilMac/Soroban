@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Soroban Calc">
+<title>Soroban · Calculette</title>
+
+<style>
+  :root {
+    --bg:      #d6c9b0;
+    --ink:     #1a1008;
+    --wood:    #c8854a;
+    --panel:   rgba(248,242,230,0.96);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    -webkit-text-size-adjust: 100%;
+    touch-action: manipulation;
+  }
+
+  /* ── Fond parchemin texturé ── */
+  body {
+    background-color: #d6c9b0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.18'/%3E%3C/svg%3E");
+  }
+
+  /* ── Message rotation (portrait) ── */
+  #rotate-msg {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(42,26,12,0.96);
+    color: #e0b870;
+    font-size: 1.1rem;
+    align-items: center; justify-content: center;
+    flex-direction: column; gap: 18px;
+    text-align: center; padding: 30px;
+    z-index: 9999;
+    letter-spacing: .04em;
+  }
+  #rotate-msg .rotate-icon { font-size: 2.5rem; }
+
+  /* ── Layout principal (paysage uniquement) ── */
+  #app {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%; height: 100%;
+    padding:
+      env(safe-area-inset-top)
+      env(safe-area-inset-right)
+      env(safe-area-inset-bottom)
+      env(safe-area-inset-left);
+    gap: 5px;
+    overflow: hidden;
+  }
+
+  /* ── Rangée valeur ── */
+  #value-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 2px 10px 0;
+    flex-shrink: 0;
+    gap: 6px;
+  }
+  #calc-ops {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  #value-display {
+    font-family: 'Courier New', monospace;
+    font-size: clamp(1.1rem, 3.5vw, 1.8rem);
+    font-weight: bold;
+    color: #3a2010;
+    letter-spacing: .08em;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+  }
+  #value-display.masked {
+    font-style: italic;
+    color: #9a7050;
+  }
+
+  /* ── Boulier ── */
+  #soroban-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    overflow: hidden;
+    min-height: 0;
+  }
+  #sorobanSVG {
+    filter: drop-shadow(0 6px 20px rgba(0,0,0,.5));
+    touch-action: manipulation;
+    display: block;
+  }
+
+  /* ── Barre basse ── */
+  #bottombar {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 2px 12px 4px;
+    flex-shrink: 0;
+  }
+  #bar-left {
+    display: flex; align-items: center; gap: 6px;
+    justify-content: flex-start; flex-shrink: 0;
+  }
+  #bar-spacer { flex: 1; }
+  #bar-right {
+    display: flex; align-items: center;
+    justify-content: flex-end; flex-shrink: 0;
+    margin-left: 16px; gap: 10px;
+  }
+
+  /* ── Boutons communs ── */
+  .btn {
+    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    cursor: pointer; border-radius: 5px;
+    padding: 5px 11px; font-size: .78rem;
+    transition: all .15s; white-space: nowrap; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-dark {
+    background: rgba(42,26,12,.15); color: #5a3418;
+    border: 1px solid rgba(100,60,20,.3);
+  }
+  .btn-dark:active { background: rgba(42,26,12,.3); }
+
+  /* ── Bouton langue bilingue ── */
+  #lang-btn {
+    display: inline-flex; align-items: center; gap: 3px;
+    background: rgba(42,26,12,.15);
+    border: 1px solid rgba(100,60,20,.3);
+    border-radius: 5px; cursor: pointer;
+    padding: 4px 8px; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+    transition: background .15s;
+  }
+  #lang-btn:active { background: rgba(42,26,12,.3); }
+  .lang-flag {
+    font-size: 1.05rem; line-height: 1;
+    opacity: .32;
+    transition: opacity .15s, transform .15s;
+  }
+  .lang-flag.lang-active {
+    opacity: 1;
+    transform: scale(1.18);
+  }
+  .lang-sep {
+    font-size: .65rem; color: rgba(90,52,24,.5);
+    line-height: 1; margin: 0 1px;
+  }
+  .btn-eye {
+    background: rgba(42,26,12,.15); color: #5a3418;
+    border: 1px solid rgba(100,60,20,.3);
+    font-size: .9rem; padding: 5px 10px;
+  }
+  .btn-eye:active { background: rgba(42,26,12,.3); }
+  .btn-raz {
+    background: #f5f0e8; color: #c0392b;
+    border: 1px solid rgba(192,57,43,.4);
+    font-weight: bold;
+  }
+  .btn-raz:active { background: #eedede; }
+
+  #colSelect {
+    background: rgba(255,255,255,.7);
+    border: 1px solid rgba(100,60,20,.25);
+    color: #1a0a02; border-radius: 5px;
+    padding: 4px 5px; font-family: inherit; font-size: .75rem;
+    flex-shrink: 0;
+  }
+
+  /* ── Boutons opération × ÷ ── */
+  .op-btn {
+    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 1rem; font-weight: bold;
+    padding: 4px 10px; border-radius: 5px; cursor: pointer;
+    border: 1px solid rgba(100,60,20,.35);
+    background: #f0ebe0; color: #5a3418;
+    transition: background .15s; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .op-btn.selected {
+    background: #3a2010; color: #e0c090;
+    border-color: #3a2010;
+  }
+  .op-btn:active { background: #e0d8c8; }
+
+  /* ── Boutons ↺ ✓ et compteur dans bar-right ── */
+  #suivant-counter {
+    font-family: 'Courier New', monospace;
+    font-size: 1rem; font-weight: 900;
+    color: #1a0a02;
+    background: rgba(255,255,255,.82);
+    border: 1.5px solid rgba(42,26,12,.35);
+    border-radius: 7px;
+    padding: 2px 8px;
+    white-space: nowrap; text-align: center;
+    min-width: 36px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.18);
+    letter-spacing: .04em;
+  }
+  #undo-btn {
+    background: rgba(42,26,12,.15); color: #5a3418;
+    border: 1px solid rgba(100,60,20,.3);
+    font-size: 1.5rem; padding: 5px 10px;
+    min-width: 38px; text-align: center; border-radius: 7px;
+    cursor: pointer; line-height: 1;
+    display: inline-flex; align-items: center; justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    margin-right: 50px;
+  }
+  #undo-btn:active { background: rgba(42,26,12,.3); }
+  #suivant-btn {
+    font-family: 'Courier New', monospace;
+    font-size: 1.4rem; padding: 5px 10px;
+    border-radius: 7px; cursor: pointer;
+    background: #f5f0e8; color: #2d7a1a;
+    border: 1px solid rgba(45,122,26,.4);
+    white-space: nowrap;
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 38px; text-align: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #suivant-btn:active { background: #e8f0e0; }
+
+  /* ── Bouton Résultat (fixed bas centre) ── */
+  #resultat-btn {
+    position: fixed;
+    bottom: max(4px, env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    font-size: .78rem; padding: 7px 20px;
+    border-radius: 5px; cursor: pointer;
+    background: #f5f0e8; color: #1a4a8a;
+    border: 1px solid rgba(26,74,138,.35);
+    font-weight: bold; white-space: nowrap;
+    z-index: 100;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #resultat-btn:active { background: #e8eef8; }
+
+
+  /* ── Modale bande papier ── */
+  #tape-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(10,5,2,.82); backdrop-filter: blur(6px);
+    z-index: 8000; align-items: center; justify-content: center;
+  }
+  #tape-overlay.open { display: flex; }
+  #tape-box {
+    background: #f5f0e8;
+    border-radius: 10px; padding: 18px 22px 14px;
+    min-width: 240px; max-width: 86vw;
+    max-height: 80vh; overflow-y: auto;
+    box-shadow: 0 8px 40px rgba(0,0,0,.6);
+    font-family: 'Courier New', monospace;
+    position: relative;
+  }
+  #tape-title {
+    font-size: .85rem; color: #5a3418;
+    text-align: center; margin-bottom: 12px;
+    letter-spacing: .05em;
+  }
+  .tape-line {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: 12px; font-size: .85rem; color: #2a1a08;
+    padding: 2px 0; font-weight: bold;
+  }
+  .tape-line .tape-op { color: #8a5a20; font-weight: bold; min-width: 14px; text-align: right; }
+  .tape-line .tape-val { text-align: right; flex: 1; font-weight: bold; }
+  .tape-neg { color: #c0201a !important; }
+  .tape-separator {
+    border: none; border-top: 1px dashed #b0905060; margin: 8px 0;
+  }
+  .tape-total-line {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: 12px; font-size: 1rem; font-weight: bold; color: #1a0a02;
+    padding: 3px 0;
+  }
+  .tape-total-line .tape-op { color: #3a2010; }
+  .tape-total-line .tape-val { text-align: right; flex: 1; }
+
+  /* ── Boutons modale bande ── */
+  .tape-action-row {
+    display: flex; gap: 8px; justify-content: center; margin-top: 14px;
+  }
+  .tape-btn {
+    font-size: .78rem; padding: 6px 18px;
+    border-radius: 5px; cursor: pointer; border: none;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tape-btn-close {
+    background: #3a2010; color: #e0b870;
+  }
+  .tape-btn-close:active { background: #5a3418; }
+  .tape-btn-clear {
+    background: transparent; color: #9a6040;
+    border: 1px solid rgba(100,60,20,.3) !important;
+  }
+  .tape-btn-clear:active { background: rgba(100,60,20,.1); }
+
+  /* ── Zone calc inline dans bottombar ── */
+  #calc-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+    padding: 0 2px 0 6px;
+    border-left: 1px solid rgba(100,60,20,.25);
+    margin-left: 4px;
+  }
+
+  /* ── Modale info ── */
+  #info-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(10,5,2,.82); backdrop-filter: blur(6px);
+    z-index: 8000; align-items: center; justify-content: center;
+  }
+  #info-overlay.open { display: flex; }
+  #info-box {
+    background: #f5f0e8;
+    border-radius: 10px; padding: 22px 26px 18px;
+    max-width: 88vw; max-height: 82vh; overflow-y: auto;
+    box-shadow: 0 8px 40px rgba(0,0,0,.6);
+    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    position: relative;
+  }
+  #info-title {
+    font-size: .95rem; font-weight: bold; color: #3a2010;
+    text-align: center; margin-bottom: 14px;
+    letter-spacing: .04em;
+  }
+  #info-body {
+    font-size: .80rem; color: #3a2010; line-height: 1.6;
+  }
+  #info-body h3 {
+    font-size: .82rem; font-weight: bold; color: #5a3418;
+    margin: 12px 0 4px; letter-spacing: .03em;
+  }
+  #info-body p { margin: 0 0 6px; }
+  #info-body ul { margin: 4px 0 8px 18px; }
+  #info-body ol { margin: 4px 0 8px 18px; }
+  #info-body li { margin-bottom: 4px; }
+  #info-body code {
+    font-family: 'Courier New', monospace;
+    background: rgba(58,32,16,.10);
+    border-radius: 3px; padding: 1px 5px;
+    font-size: .78rem; color: #3a2010;
+  }
+  #info-body .sig {
+    margin-top: 16px; font-size: .72rem;
+    color: #9a7050; text-align: right; font-style: italic;
+  }
+  #info-close-row {
+    display: flex; justify-content: center; margin-top: 16px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Message portrait -->
+<div id="rotate-msg">
+  <div class="rotate-icon">↻</div>
+  <div id="rotate-text">Tourne l'iPhone en <strong>mode paysage</strong><br>pour utiliser la calculette soroban.</div>
+</div>
+
+<!-- App principale -->
+<div id="app">
+  <!-- Rangée valeur -->
+  <div id="value-row">
+    <div id="calc-ops">
+      <button class="op-btn" id="op-mul" onclick="selectOp('×')">×</button>
+      <button class="op-btn" id="op-div" onclick="selectOp('÷')">÷</button>
+    </div>
+    <div id="value-display">0</div>
+    <div id="suivant-counter"></div>
+    <button class="btn btn-raz" id="raz-btn" onclick="doRAZ()">RAZ</button>
+  </div>
+
+  <!-- Boulier -->
+  <div id="soroban-wrapper">
+    <svg id="sorobanSVG"></svg>
+  </div>
+
+  <!-- Barre basse -->
+  <div id="bottombar">
+    <div id="bar-left">
+      <button id="lang-btn" onclick="toggleLang()" title="Langue / 言語">
+        <span id="lang-fr" class="lang-flag lang-active">🇫🇷</span>
+        <span class="lang-sep">|</span>
+        <span id="lang-jp" class="lang-flag">🇯🇵</span>
+      </button>
+      <button class="btn btn-dark" id="info-btn" onclick="showInfo()" title="Comment ça marche ?">ℹ</button>
+      <select id="colSelect" onchange="setCols(+this.value)">
+        <option value="9">9 col.</option>
+        <option value="11">11 col.</option>
+        <option value="13" selected>13 col.</option>
+      </select>
+      <button class="btn btn-eye" id="eye-btn" onclick="toggleVal()" title="Afficher / masquer la valeur">🙈</button>
+      <div id="calc-group">
+        <!-- vide : les boutons × ÷ sont déjà dans value-row -->
+      </div>
+    </div>
+    <div id="bar-spacer"></div>
+    <div id="bar-right">
+      <button id="undo-btn" onclick="doUndo()">↺</button>
+      <button id="suivant-btn" onclick="doSuivant()">✓</button>
+    </div>
+  </div>
+</div>
+
+<button id="resultat-btn" onclick="showTape()">Résultat</button>
+
+<!-- Modale info -->
+<div id="info-overlay" onclick="if(event.target===this)closeInfo()">
+  <div id="info-box">
+    <div id="info-title">🖩 Calculette Soroban — mode d'emploi</div>
+    <div id="info-body">
+      <p>Cette calculette utilise un <strong>boulier soroban</strong> comme interface de saisie. La logique est donc différente d'une calculette classique.</p>
+
+      <h3>Principe de base</h3>
+      <p>Tu poses une valeur sur le boulier, puis tu appuies sur <strong>✓</strong> pour l'enregistrer. Le boulier ne se remet <em>pas</em> à zéro automatiquement — tu continues de poser la valeur suivante directement.</p>
+
+      <h3>Addition et soustraction (mode auto)</h3>
+      <ul>
+        <li>Pose la première valeur → <strong>✓</strong></li>
+        <li>Modifie le boulier pour obtenir la valeur suivante → <strong>✓</strong></li>
+        <li>La bande enregistre automatiquement la <em>différence</em> entre deux ✓ successifs (+ si augmentation, − si diminution).</li>
+      </ul>
+
+      <h3>Multiplication</h3>
+      <p>La technique soroban consiste à <strong>remplacer progressivement</strong> l'opérande A par son produit, chiffre par chiffre, de droite à gauche.</p>
+      <p><em>Exemple : 47 × 6</em></p>
+      <ol>
+        <li>Pose <strong>47</strong> sur le boulier → <strong>✓</strong> (bande enregistre <code>+ 47</code>)</li>
+        <li>Clique <strong>×</strong> — le bouton s'allume, A = 47 est mémorisé</li>
+        <li>Travaille sur le boulier :<br>
+          — unités : 7 × 6 = <strong>42</strong> → efface le 7, ajoute 42 (boulier = 82)<br>
+          — dizaines : 4 × 6 = <strong>24</strong> → efface le 4 des dizaines, ajoute 24 (boulier = <strong>282</strong>)</li>
+        <li>Boulier affiche 282 → <strong>✓</strong></li>
+        <li>L'appli calcule le facteur : 282 ÷ 47 = 6 → bande affiche <code>47 × 6</code></li>
+      </ol>
+      <p>⚠️ Le boulier doit afficher <strong>A avant de cliquer ×</strong> — si le boulier est à 0, une erreur s'affiche.</p>
+
+      <h3>Division</h3>
+      <p>Même logique en miroir : tu poses A, tu fais la division sur le boulier, tu valides B (le quotient).</p>
+      <p><em>Exemple : 282 ÷ 6</em></p>
+      <ol>
+        <li>Pose <strong>282</strong> sur le boulier → <strong>✓</strong> (bande enregistre <code>+ 282</code>)</li>
+        <li>Clique <strong>÷</strong> — A = 282 mémorisé</li>
+        <li>Travaille sur le boulier :<br>
+          — 2 ÷ 6 impossible : reporte sur les dizaines → 28 ÷ 6 = 4 reste 4<br>
+          — pose 4 aux dizaines, reste 42 aux unités → 42 ÷ 6 = 7<br>
+          — boulier = <strong>47</strong></li>
+        <li>Boulier affiche 47 → <strong>✓</strong></li>
+        <li>L'appli calcule le diviseur : 282 ÷ 47 = 6 → bande affiche <code>282 ÷ 6</code></li>
+      </ol>
+      <p>⚠️ La division soroban est la technique la plus difficile — entraîne-toi d'abord avec des cas simples !</p>
+
+      <h3>Autres boutons</h3>
+      <ul>
+        <li><strong>↺</strong> — Annule le dernier ✓ (remet le boulier à l'état du coup précédent)</li>
+        <li><strong>Résultat</strong> — Affiche la bande de calcul avec le total</li>
+        <li><strong>RAZ</strong> — Remet le boulier et la bande à zéro (confirmation demandée si bande non vide)</li>
+        <li><strong>👁 / 🙈</strong> — Masque ou affiche la valeur numérique</li>
+      </ul>
+
+      <p class="sig">par CilMac &amp; Claude Sonnet 4.6 · mars 2026</p>
+    </div>
+    <div id="info-close-row">
+      <button class="tape-btn tape-btn-close" id="info-close-btn" onclick="closeInfo()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+
+<div id="tape-overlay" onclick="if(event.target===this)closeTape()">
+  <div id="tape-box">
+    <div id="tape-title">🖩 Bande de calcul</div>
+    <div id="tape-lines"></div>
+    <div class="tape-action-row">
+      <button class="tape-btn tape-btn-close" id="tape-close-btn" onclick="closeTape()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// UTILITAIRES SVG
+// ════════════════════════════════════════════════════════════════
+const NS = 'http://www.w3.org/2000/svg';
+function mk(tag, attrs, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k,v] of Object.entries(attrs)) e.setAttribute(k,v);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+
+const DRAG_THRESHOLD = 8;
+
+// ════════════════════════════════════════════════════════════════
+// GÉOMÉTRIE BOULIER
+// ════════════════════════════════════════════════════════════════
+const I_PX = 10;
+const I_PT = 8, I_PB = 8;
+const I_BAR_H = 6;
+const I_TARGET_H = 288;
+const _I_BH_BASE    = Math.round((I_TARGET_H - I_PT - I_PB - I_BAR_H) / 7);
+const _I_COL_W_BASE = 46;
+
+let I_COL_W_FIXED = _I_COL_W_BASE;
+let I_BH       = _I_BH_BASE;
+let I_ZONE_H_H = 2 * I_BH;
+let I_ZONE_E_H = 5 * I_BH;
+let I_SVG_H    = I_PT + I_ZONE_H_H + I_BAR_H + I_ZONE_E_H + I_PB;
+let I_Y_HZ     = I_PT;
+let I_Y_BAR    = I_PT + I_ZONE_H_H;
+let I_Y_EZ     = I_Y_BAR + I_BAR_H;
+
+function computeLayout(cols) {
+  // Adapte au viewport réel
+  const bottomBarH = 48;
+  const valueBarH  = 36;
+  const availH = window.innerHeight - bottomBarH - valueBarH - 12;
+  const targetH = Math.max(180, availH * 0.92);
+  I_BH          = Math.floor((targetH - I_PT - I_PB - I_BAR_H) / 7);
+  const availW  = window.innerWidth - 2 * I_PX - 140; // -140 : marge symétrique gauche+droite (boutons fixed)
+  I_COL_W_FIXED = Math.floor(availW / cols);
+  I_ZONE_H_H = 2 * I_BH;
+  I_ZONE_E_H = 5 * I_BH;
+  I_SVG_H    = I_PT + I_ZONE_H_H + I_BAR_H + I_ZONE_E_H + I_PB;
+  I_Y_HZ     = I_PT;
+  I_Y_BAR    = I_PT + I_ZONE_H_H;
+  I_Y_EZ     = I_Y_BAR + I_BAR_H;
+}
+
+function svgW(cols) { return cols * I_COL_W_FIXED + 2 * I_PX; }
+function colCx(c)   { return I_PX + c * I_COL_W_FIXED + I_COL_W_FIXED / 2; }
+function heavenY(active) {
+  return active ? I_Y_BAR - I_BH/2 : I_Y_HZ + I_BH/2;
+}
+function earthY(idx, n) {
+  return idx <= n
+    ? I_Y_EZ + (idx-1)*I_BH + I_BH/2
+    : I_Y_EZ +  idx   *I_BH + I_BH/2;
+}
+
+// ── Dessin d'une perle ──
+function drawBead(svg, cx, cy, defs, prefix) {
+  const rw = I_COL_W_FIXED/2 - 1;
+  const rh = I_BH/2;
+  const bx = rw * 0.55;
+  const d = [
+    `M ${cx} ${cy-rh}`,
+    `C ${cx+bx} ${cy-rh}, ${cx+rw} ${cy-rh*0.3}, ${cx+rw} ${cy}`,
+    `C ${cx+rw} ${cy+rh*0.3}, ${cx+bx} ${cy+rh}, ${cx} ${cy+rh}`,
+    `C ${cx-bx} ${cy+rh}, ${cx-rw} ${cy+rh*0.3}, ${cx-rw} ${cy}`,
+    `C ${cx-rw} ${cy-rh*0.3}, ${cx-bx} ${cy-rh}, ${cx} ${cy-rh}`,
+    'Z'
+  ].join(' ');
+  const gid = `${prefix}gb_${Math.round(cx)}_${Math.round(cy)}`;
+  const gr = mk('radialGradient', {id:gid, cx:'36%', cy:'28%', r:'56%', fx:'36%', fy:'28%'}, defs);
+  mk('stop',{'offset':'0%',  'stop-color':'#d89458'}, gr);
+  mk('stop',{'offset':'25%', 'stop-color':'#b86420'}, gr);
+  mk('stop',{'offset':'62%', 'stop-color':'#7c3c10'}, gr);
+  mk('stop',{'offset':'100%','stop-color':'#3c1404'}, gr);
+  mk('path', {d, fill:`url(#${gid})`}, svg);
+  mk('ellipse', {
+    cx: cx - rw*0.20, cy: cy - rh*0.40,
+    rx: rw*0.22, ry: rh*0.14,
+    fill:'rgba(255,255,255,.26)', 'pointer-events':'none'
+  }, svg);
+}
+
+// ── Drag state ──
+let _drag = null;
+
+// ── Construction du SVG boulier ──
+function buildSVGInto(svgEl, cols, st) {
+  computeLayout(cols);
+  const W = svgW(cols);
+  svgEl.innerHTML = '';
+  svgEl.setAttribute('width', W);
+  svgEl.setAttribute('height', I_SVG_H);
+  svgEl.setAttribute('viewBox', `0 0 ${W} ${I_SVG_H}`);
+
+  const defs = mk('defs', {}, svgEl);
+
+  const gFr = mk('linearGradient', {id:'Fr', x1:'0',y1:'0',x2:'0',y2:'1'}, defs);
+  mk('stop',{'offset':'0%',  'stop-color':'#282020'}, gFr);
+  mk('stop',{'offset':'30%', 'stop-color':'#0e0a08'}, gFr);
+  mk('stop',{'offset':'100%','stop-color':'#060404'}, gFr);
+
+  const gIn = mk('linearGradient', {id:'In', x1:'0',y1:'0',x2:'0',y2:'1'}, defs);
+  mk('stop',{'offset':'0%',  'stop-color':'#f0e8d8'}, gIn);
+  mk('stop',{'offset':'50%', 'stop-color':'#e8ddc8'}, gIn);
+  mk('stop',{'offset':'100%','stop-color':'#ddd0b8'}, gIn);
+
+  const gBar = mk('linearGradient', {id:'Bar', x1:'0',y1:'0',x2:'0',y2:'1'}, defs);
+  mk('stop',{'offset':'0%',  'stop-color':'#e8e8f0'}, gBar);
+  mk('stop',{'offset':'20%', 'stop-color':'#a0a8b0'}, gBar);
+  mk('stop',{'offset':'50%', 'stop-color':'#d8dce8'}, gBar);
+  mk('stop',{'offset':'80%', 'stop-color':'#7880a0'}, gBar);
+  mk('stop',{'offset':'100%','stop-color':'#b0b8c8'}, gBar);
+
+  mk('rect', {x:0,y:0,width:W,height:I_SVG_H,rx:7,ry:7,fill:'url(#Fr)',stroke:'#1a1010','stroke-width':2}, svgEl);
+  mk('rect', {x:I_PX-4,y:I_PT-4,width:W-2*(I_PX-4),height:I_SVG_H-(I_PT-4)-(I_PB-4),rx:3,ry:3,fill:'url(#In)'}, svgEl);
+  mk('rect', {x:I_PX-5,y:I_Y_BAR,width:W-2*(I_PX-5),height:I_BAR_H,fill:'url(#Bar)',rx:1,ry:1}, svgEl);
+
+  for (let c=0; c<cols; c++) {
+    const cx = colCx(c);
+    const rodW = Math.max(2, I_COL_W_FIXED * 0.11);
+    const gRod = `Rod_${c}`;
+    const gr2 = mk('linearGradient', {id:gRod, x1:'0',y1:'0',x2:'1',y2:'0'}, defs);
+    mk('stop',{'offset':'0%',  'stop-color':'rgba(30,16,6,.85)'}, gr2);
+    mk('stop',{'offset':'45%', 'stop-color':'rgba(210,150,70,.85)'}, gr2);
+    mk('stop',{'offset':'100%','stop-color':'rgba(20,10,4,.7)'}, gr2);
+    mk('rect',{x:cx-rodW/2, y:I_PT, width:rodW, height:I_SVG_H-I_PT-I_PB, rx:rodW/2,ry:rodW/2, fill:`url(#${gRod})`}, svgEl);
+
+    if ((cols-1-c)>0 && (cols-1-c)%3===0)
+      mk('circle',{cx, cy:I_Y_BAR+I_BAR_H/2, r:2.5, fill:'#101010', stroke:'rgba(200,200,220,.3)','stroke-width':.7}, svgEl);
+
+    drawBead(svgEl, cx, heavenY(st[c].heaven===1), defs, `c${c}_`);
+
+    const hz = mk('rect',{x:I_PX+c*I_COL_W_FIXED, y:I_Y_HZ, width:I_COL_W_FIXED, height:I_ZONE_H_H,
+      fill:'transparent','data-col':c}, svgEl);
+    hz.addEventListener('click', onHeavenClick);
+    hz.addEventListener('touchstart', e=>{
+      e.preventDefault();
+      _drag = { startClientY: e.touches[0].clientY, col: parseInt(hz.getAttribute('data-col')) };
+    },{passive:false});
+    hz.addEventListener('touchend', e=>{
+      e.preventDefault();
+      if (!_drag) { onHeavenClick(e); return; }
+      const dy = e.changedTouches[0].clientY - _drag.startClientY;
+      const moved = Math.abs(dy) > DRAG_THRESHOLD;
+      if (moved) {
+        const fakeEv = {currentTarget:{getAttribute:()=>_drag.col}, changedTouches:e.changedTouches, _isDragResult:true, _heavenVal: dy>0?1:0};
+        _drag = null;
+        onHeavenClick(fakeEv);
+      } else {
+        _drag = null;
+        onHeavenClick(e);
+      }
+    },{passive:false});
+
+    const n = st[c].earth;
+    for (let i=1;i<=4;i++) drawBead(svgEl, cx, earthY(i,n), defs, `c${c}_`);
+
+    const ez = mk('rect',{x:I_PX+c*I_COL_W_FIXED, y:I_Y_EZ, width:I_COL_W_FIXED, height:I_ZONE_E_H,
+      fill:'transparent','data-col':c}, svgEl);
+    ez.addEventListener('click', onEarthClick);
+    ez.addEventListener('touchend', e=>{e.preventDefault();onEarthClick(e);},{passive:false});
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// ÉTAT BOULIER
+// ════════════════════════════════════════════════════════════════
+let numCols  = 13;
+let state    = [];
+let showVal  = false;
+
+function initState() {
+  state = [];
+  for (let c=0; c<numCols; c++) state.push({heaven:0, earth:0});
+}
+function getValue() {
+  let v=0;
+  for (let c=0; c<numCols; c++)
+    v += (state[c].heaven*5 + state[c].earth) * Math.pow(10, numCols-1-c);
+  return v;
+}
+function updateVal() {
+  const el = document.getElementById('value-display');
+  if (!el) return;
+  if (showVal) {
+    el.textContent = formatNum(getValue());
+    el.className = '';
+  } else {
+    el.textContent = '---';
+    el.className = 'masked';
+  }
+}
+function toggleVal() {
+  showVal = !showVal;
+  const btn = document.getElementById('eye-btn');
+  if (btn) btn.textContent = showVal ? '👁' : '🙈';
+  updateVal();
+}
+function setCols(n) {
+  numCols = n;
+  initState();
+  buildSVG();
+}
+function buildSVG() {
+  const svg = document.getElementById('sorobanSVG');
+  if (!svg) return;
+  buildSVGInto(svg, numCols, state);
+  updateVal();
+}
+
+// ── Handlers clics perles ──
+function onHeavenClick(e) {
+  const c = parseInt(e.currentTarget.getAttribute('data-col'));
+  if (isNaN(c)) return;
+  if (e._isDragResult) {
+    if (state[c].heaven !== e._heavenVal) {
+      state[c].heaven = e._heavenVal;
+      playClick(); buildSVG();
+    }
+  } else {
+    state[c].heaven = state[c].heaven ? 0 : 1;
+    playClick(); buildSVG();
+  }
+}
+function onEarthClick(e) {
+  const c = parseInt(e.currentTarget.getAttribute('data-col'));
+  if (isNaN(c)) return;
+  const n = state[c].earth;
+  const svg = document.getElementById('sorobanSVG');
+  const rect = svg.getBoundingClientRect();
+  const scaleY = I_SVG_H / rect.height;
+  const clientY = e.changedTouches?.[0]?.clientY ?? e.clientY;
+  const svgY = (clientY - rect.top) * scaleY;
+  let best=1, bestD=Infinity;
+  for(let i=1;i<=4;i++){const d=Math.abs(svgY-earthY(i,n));if(d<bestD){bestD=d;best=i;}}
+  state[c].earth = best<=n ? best-1 : best;
+  playClick(); buildSVG();
+}
+
+// ════════════════════════════════════════════════════════════════
+// MODE CALCULETTE
+// ════════════════════════════════════════════════════════════════
+let calcOp       = null;   // null = auto +/−, '×', '÷'
+let calcTape     = [];     // [{op, val}] ou [{op:'×'/'÷', a, k, val}]
+let calcSnapshot = null;   // valeur au dernier ✓
+let calcMulA     = null;   // snapshot A mémorisé au moment du clic × ou ÷
+
+function updateCounter() {
+  const el = document.getElementById('suivant-counter');
+  const n  = calcTape.length;
+  if (el) el.textContent = n > 0 ? String(n) : '';
+}
+
+function showOpError(msg) {
+  // Petit toast d'erreur non bloquant (2 secondes)
+  let toast = document.getElementById('op-error-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'op-error-toast';
+    toast.style.cssText = `
+      position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+      background:#3a0808; color:#f0c0a0; font-size:.78rem; font-weight:bold;
+      padding:10px 18px; border-radius:7px; z-index:9999;
+      box-shadow:0 4px 20px rgba(0,0,0,.5); text-align:center;
+      pointer-events:none; white-space:nowrap;
+    `;
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.display = 'block';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { toast.style.display = 'none'; }, 2200);
+}
+
+function doRAZ() {
+  playRAZ();  // son immédiat au clic RAZ
+  if (calcTape.length > 0) {
+    showRAZConfirm();
+    return;
+  }
+  _doRAZExecute();
+}
+
+function showRAZConfirm() {
+  const el = document.getElementById('raz-overlay');
+  if (el) { el.style.display = 'flex'; }
+}
+function closeRAZConfirm() {
+  const el = document.getElementById('raz-overlay');
+  if (el) { el.style.display = 'none'; }
+}
+function confirmRAZ() {
+  playRAZConfirm();  // son joué immédiatement au clic OK
+  closeRAZConfirm();
+  _doRAZExecute();
+}
+function _doRAZExecute() {
+  initState();
+  buildSVG();
+  calcSnapshot = 0;
+  calcTape  = [];
+  calcOp    = null;
+  calcMulA  = null;
+  document.getElementById('op-mul')?.classList.remove('selected');
+  document.getElementById('op-div')?.classList.remove('selected');
+  updateCounter();
+}
+
+function doUndo() {
+  if (!calcTape.length) return;
+  playUndo();
+  const snap = calcSnapshot ?? 0;
+  initState();
+  let v = Math.abs(snap);
+  for (let col = numCols - 1; col >= 0 && v > 0; col--) {
+    const digit = v % 10;
+    v = Math.floor(v / 10);
+    state[col].heaven = digit >= 5 ? 1 : 0;
+    state[col].earth  = digit >= 5 ? digit - 5 : digit;
+  }
+  buildSVG();
+}
+
+function selectOp(op) {
+  playOpSelect();
+  if (calcOp === op) {
+    // désélection
+    calcOp  = null;
+    calcMulA = null;
+    document.getElementById('op-mul')?.classList.remove('selected');
+    document.getElementById('op-div')?.classList.remove('selected');
+  } else {
+    const a = getValue();
+    if (a === 0) {
+      // erreur : A doit être non nul
+      showOpError(LANG[currentLang].opErrorZero);
+      return;
+    }
+    calcOp   = op;
+    calcMulA = a;   // mémorise A au moment du clic
+    document.getElementById('op-mul')?.classList.toggle('selected', op === '×');
+    document.getElementById('op-div')?.classList.toggle('selected', op === '÷');
+  }
+}
+
+function doSuivant() {
+  const current = getValue();
+  const prev    = calcSnapshot ?? 0;
+
+  if (calcOp === '×' || calcOp === '÷') {
+    const a = calcMulA;   // A mémorisé au clic ×/÷
+    const b = current;    // B = résultat posé maintenant
+
+    if (calcOp === '×') {
+      if (a === 0) { showOpError(LANG[currentLang].opErrorMulA0); return; }
+      if (b === 0) { showOpError(LANG[currentLang].opErrorMulB0); return; }
+      if (b % a !== 0) {
+        // k non entier — on accepte quand même, on arrondit à 4 décimales
+        const k = Math.round((b / a) * 10000) / 10000;
+        calcTape.push({ op: '×', a, k, val: b });
+      } else {
+        const k = b / a;
+        calcTape.push({ op: '×', a, k, val: b });
+      }
+    } else { // ÷
+      if (a === 0) { showOpError(LANG[currentLang].opErrorDivA0); return; }
+      if (b === 0) { showOpError(LANG[currentLang].opErrorDivB0); return; }
+      // diviseur k = a / b
+      const k = Math.round((a / b) * 10000) / 10000;
+      calcTape.push({ op: '÷', a, k, val: b });
+    }
+
+    playSuivant();
+    updateCounter();
+    calcSnapshot = current;
+    calcOp   = null;
+    calcMulA = null;
+    document.getElementById('op-mul')?.classList.remove('selected');
+    document.getElementById('op-div')?.classList.remove('selected');
+
+  } else {
+    // mode auto +/−
+    const diff = current - prev;
+    const op   = diff >= 0 ? '+' : '−';
+    const val  = Math.abs(diff);
+    if (val !== 0) calcTape.push({ op, val });
+    playSuivant();
+    updateCounter();
+    calcSnapshot = current;
+  }
+}
+
+function showTape() {
+  playTape();
+  const container = document.getElementById('tape-lines');
+  if (!container) return;
+
+  if (calcTape.length === 0) {
+    container.innerHTML = `<div style="text-align:center;color:#9a7050;font-size:.8rem;padding:10px 0">${LANG[currentLang].tapeEmpty}</div>`;
+    document.getElementById('tape-overlay').classList.add('open');
+    return;
+  }
+
+  let total = 0;
+  let firstAdd = true; // pour initialiser total avec la 1ère valeur +/−
+  for (const item of calcTape) {
+    if (item.op === '+') {
+      if (firstAdd && total === 0) { total += item.val; firstAdd = false; }
+      else total += item.val;
+    }
+    else if (item.op === '−') { total -= Math.abs(item.val); firstAdd = false; }
+    else if (item.op === '×') { total = item.val; firstAdd = false; }  // val = B (résultat)
+    else if (item.op === '÷') { total = item.val; firstAdd = false; }  // val = B (résultat)
+  }
+
+  let html = '';
+  calcTape.forEach((item, i) => {
+    if (item.op === '×' || item.op === '÷') {
+      const kStr = formatNum(item.k);
+      const aStr = formatNum(item.a);
+      html += `<div class="tape-line">
+        <span class="tape-val">${aStr} ${item.op} ${kStr}</span>
+        <span class="tape-op">${i === 0 ? '' : '='}</span>
+      </div>`;
+    } else {
+      const prefix = i === 0 ? '' : item.op;
+      const isNeg  = item.op === '−';
+      const negCls = isNeg ? ' tape-neg' : '';
+      html += `<div class="tape-line">
+        <span class="tape-val${negCls}">${formatNum(item.val)}</span>
+        <span class="tape-op${negCls}">${prefix}</span>
+      </div>`;
+    }
+  });
+  html += '<hr class="tape-separator">';
+  const totalNegCls = total < 0 ? ' tape-neg' : '';
+  html += `<div class="tape-total-line">
+    <span class="tape-val${totalNegCls}">${formatNum(total)}</span>
+    <span class="tape-op${totalNegCls}">=</span>
+  </div>`;
+
+  container.innerHTML = html;
+  document.getElementById('tape-overlay').classList.add('open');
+}
+
+function closeTape() {
+  document.getElementById('tape-overlay').classList.remove('open');
+}
+
+function showInfo() {
+  document.getElementById('info-overlay').classList.add('open');
+}
+function closeInfo() {
+  document.getElementById('info-overlay').classList.remove('open');
+}
+function clearTape() {
+  calcTape = [];
+  updateCounter();
+  closeTape();
+}
+
+// ════════════════════════════════════════════════════════════════
+// AUDIO (Web Audio API)
+// ════════════════════════════════════════════════════════════════
+let AC = null;
+let _acTimer = null;
+function getAC() {
+  if (!AC) AC = new(window.AudioContext||window.webkitAudioContext)();
+  if (AC.state === 'suspended') AC.resume();
+  clearTimeout(_acTimer);
+  _acTimer = setTimeout(() => { if (AC) AC.suspend(); }, 30000);
+  return AC;
+}
+function playSuivant() {
+  try {
+    const ctx=getAC(), o=ctx.createOscillator(), g=ctx.createGain();
+    o.connect(g); g.connect(ctx.destination); o.type='sine';
+    o.frequency.setValueAtTime(330, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(180, ctx.currentTime+.07);
+    g.gain.setValueAtTime(.18, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime+.12);
+    o.start(); o.stop(ctx.currentTime+.12);
+  } catch(e){}
+}
+function playOpSelect() {
+  try {
+    const ctx=getAC(), o=ctx.createOscillator(), g=ctx.createGain();
+    o.connect(g); g.connect(ctx.destination); o.type='triangle'; o.frequency.value=1200;
+    g.gain.setValueAtTime(.07, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime+.08);
+    o.start(); o.stop(ctx.currentTime+.08);
+  } catch(e){}
+}
+function playTape() {
+  try {
+    const ctx=getAC();
+    [900,650].forEach((f,i)=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination); o.type='sine'; o.frequency.value=f;
+      g.gain.setValueAtTime(.09, ctx.currentTime+i*.07);
+      g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime+i*.07+.1);
+      o.start(ctx.currentTime+i*.07); o.stop(ctx.currentTime+i*.07+.1);
+    });
+  } catch(e){}
+}
+function playUndo() {
+  try {
+    const ctx=getAC(), o=ctx.createOscillator(), g=ctx.createGain();
+    o.connect(g); g.connect(ctx.destination); o.type='sine';
+    o.frequency.setValueAtTime(500, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(260, ctx.currentTime+.12);
+    g.gain.setValueAtTime(.1, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime+.14);
+    o.start(); o.stop(ctx.currentTime+.14);
+  } catch(e){}
+}
+function playConfirm() {
+  try {
+    const ctx=getAC();
+    [440,440].forEach((f,i)=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination); o.type='square'; o.frequency.value=f;
+      g.gain.setValueAtTime(.05, ctx.currentTime+i*.12);
+      g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime+i*.12+.08);
+      o.start(ctx.currentTime+i*.12); o.stop(ctx.currentTime+i*.12+.08);
+    });
+  } catch(e){}
+}
+function playClick() {
+  try {
+    const ctx=getAC(),o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value=700+Math.random()*250; o.type='triangle';
+    g.gain.setValueAtTime(.09,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.06);
+    o.start(); o.stop(ctx.currentTime+.06);
+  } catch(e){}
+}
+function playRAZ() {
+  try {
+    const ctx = getAC();
+    const dur = 0.18;
+    const buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * dur), ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      const t = i / ctx.sampleRate;
+      const env = Math.pow(1 - t / dur, 1.8);
+      data[i] = (Math.random() * 2 - 1) * env * 0.35;
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const filt = ctx.createBiquadFilter();
+    filt.type = 'bandpass';
+    filt.frequency.value = 2800;
+    filt.Q.value = 0.6;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(1, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    src.connect(filt); filt.connect(g); g.connect(ctx.destination);
+    src.start(); src.stop(ctx.currentTime + dur);
+  } catch(e) {}
+}
+
+function playRAZConfirm() {
+  // Glissando descendant + bruit bref : sensation "effacement"
+  try {
+    const ctx = getAC();
+    const t0 = ctx.currentTime;
+    // 1) glissando sinus descendant 900→160 Hz
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'sine';
+    o.frequency.setValueAtTime(900, t0);
+    o.frequency.exponentialRampToValueAtTime(160, t0 + 0.32);
+    g.gain.setValueAtTime(0.18, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.32);
+    o.start(t0); o.stop(t0 + 0.32);
+    // 2) bruit blanc court en ponctuation finale
+    const dur = 0.07;
+    const buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * dur), ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random()*2-1) * (1 - i/data.length) * 0.25;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const gn = ctx.createGain();
+    gn.gain.setValueAtTime(1, t0 + 0.30);
+    src.connect(gn); gn.connect(ctx.destination);
+    src.start(t0 + 0.30); src.stop(t0 + 0.30 + dur);
+  } catch(e) {}
+}
+
+// ════════════════════════════════════════════════════════════════
+// ORIENTATION
+// ════════════════════════════════════════════════════════════════
+function checkOrientation() {
+  const isLandscape = window.innerWidth > window.innerHeight;
+  const rotMsg = document.getElementById('rotate-msg');
+  const app    = document.getElementById('app');
+  const resBtn  = document.getElementById('resultat-btn');
+
+  if (isLandscape) {
+    if (rotMsg) rotMsg.style.display = 'none';
+    if (app)    app.style.display    = 'flex';
+    if (resBtn)  resBtn.style.display  = 'block';
+    buildSVG();
+  } else {
+    if (rotMsg) rotMsg.style.display = 'flex';
+    if (app)    app.style.display    = 'none';
+    if (resBtn)  resBtn.style.display  = 'none';
+  }
+}
+
+window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 200));
+window.addEventListener('resize', () => {
+  let rT;
+  clearTimeout(rT);
+  rT = setTimeout(checkOrientation, 200);
+});
+
+// ════════════════════════════════════════════════════════════════
+// INTERNATIONALISATION (FR / JP)
+// ════════════════════════════════════════════════════════════════
+let currentLang = 'fr';
+
+const LANG = {
+  fr: {
+    rotateTip:    'Tourne l\'iPhone en <strong>mode paysage</strong><br>pour utiliser la calculette soroban.',
+    razBtn:       'RAZ',
+    resultatBtn:  'Résultat',
+    tapeTitleTxt: '🖩 Bande de calcul',
+    tapeClose:    'Fermer',
+    infoTitle:    '🖩 Calculette Soroban — mode d\'emploi',
+    infoClose:    'Fermer',
+    razConfirm:   'Effacer le boulier et toute la bande ?',
+    razCancel:    'Annuler',
+    infoHtml: `
+      <p>Cette calculette utilise un <strong>boulier soroban</strong> comme interface de saisie. La logique est donc différente d'une calculette classique.</p>
+      <h3>Principe de base</h3>
+      <p>Tu poses une valeur sur le boulier, puis tu appuies sur <strong>✓</strong> pour l'enregistrer. Le boulier ne se remet <em>pas</em> à zéro automatiquement — tu continues de poser la valeur suivante directement.</p>
+      <h3>Addition et soustraction (mode auto)</h3>
+      <ul>
+        <li>Pose la première valeur → <strong>✓</strong></li>
+        <li>Modifie le boulier pour obtenir la valeur suivante → <strong>✓</strong></li>
+        <li>La bande enregistre automatiquement la <em>différence</em> entre deux ✓ successifs (+ si augmentation, − si diminution).</li>
+      </ul>
+      <h3>Multiplication</h3>
+      <p>La technique soroban consiste à <strong>remplacer progressivement</strong> l'opérande A par son produit, chiffre par chiffre, de droite à gauche.</p>
+      <p><em>Exemple : 47 × 6</em></p>
+      <ol>
+        <li>Pose <strong>47</strong> sur le boulier → <strong>✓</strong> (bande enregistre <code>+ 47</code>)</li>
+        <li>Clique <strong>×</strong> — le bouton s'allume, A = 47 est mémorisé</li>
+        <li>Travaille sur le boulier :<br>
+          — unités : 7 × 6 = <strong>42</strong> → efface le 7, ajoute 42 (boulier = 82)<br>
+          — dizaines : 4 × 6 = <strong>24</strong> → efface le 4 des dizaines, ajoute 24 (boulier = <strong>282</strong>)</li>
+        <li>Boulier affiche 282 → <strong>✓</strong></li>
+        <li>L'appli calcule le facteur : 282 ÷ 47 = 6 → bande affiche <code>47 × 6</code></li>
+      </ol>
+      <p>⚠️ Le boulier doit afficher <strong>A avant de cliquer ×</strong> — si le boulier est à 0, une erreur s'affiche.</p>
+      <h3>Division</h3>
+      <p>Même logique en miroir : tu poses A, tu fais la division sur le boulier, tu valides B (le quotient).</p>
+      <p><em>Exemple : 282 ÷ 6</em></p>
+      <ol>
+        <li>Pose <strong>282</strong> sur le boulier → <strong>✓</strong> (bande enregistre <code>+ 282</code>)</li>
+        <li>Clique <strong>÷</strong> — A = 282 mémorisé</li>
+        <li>Travaille sur le boulier :<br>
+          — 2 ÷ 6 impossible : reporte sur les dizaines → 28 ÷ 6 = 4 reste 4<br>
+          — pose 4 aux dizaines, reste 42 aux unités → 42 ÷ 6 = 7<br>
+          — boulier = <strong>47</strong></li>
+        <li>Boulier affiche 47 → <strong>✓</strong></li>
+        <li>L'appli calcule le diviseur : 282 ÷ 47 = 6 → bande affiche <code>282 ÷ 6</code></li>
+      </ol>
+      <p>⚠️ La division soroban est la technique la plus difficile — entraîne-toi d'abord avec des cas simples !</p>
+      <h3>Autres boutons</h3>
+      <ul>
+        <li><strong>↺</strong> — Annule le dernier ✓ (remet le boulier à l'état du coup précédent)</li>
+        <li><strong>Résultat</strong> — Affiche la bande de calcul avec le total</li>
+        <li><strong>RAZ</strong> — Remet le boulier et la bande à zéro (confirmation demandée si bande non vide)</li>
+        <li><strong>👁 / 🙈</strong> — Masque ou affiche la valeur numérique</li>
+      </ul>
+      <p class="sig">par CilMac &amp; Claude Sonnet 4.6 · mars 2026</p>`,
+    opErrorZero:  'Le boulier est à 0 — pose d\'abord la valeur A avant de choisir × ou ÷',
+    opErrorMulA0: 'A = 0 : multiplication impossible',
+    opErrorMulB0: 'Résultat = 0 : vérifie le boulier',
+    opErrorDivA0: 'A = 0 : division impossible',
+    opErrorDivB0: 'Résultat = 0 : vérifie le boulier',
+    tapeEmpty:    'Aucune opération enregistrée',
+    langFlag:     '🇯🇵',
+    numLocale:    'fr-FR',
+  },
+  jp: {
+    rotateTip:    'そろばん電卓を使うには<br>iPhoneを<strong>横向き</strong>にしてください。',
+    razBtn:       'リセット',
+    resultatBtn:  '計算結果',
+    tapeTitleTxt: '🖩 計算テープ',
+    tapeClose:    '閉じる',
+    infoTitle:    '🖩 そろばん電卓 — 使い方',
+    infoClose:    '閉じる',
+    razConfirm:   'そろばんとテープをリセットしますか？',
+    razCancel:    'キャンセル',
+    infoHtml: `
+      <p>この電卓は<strong>そろばん</strong>を入力インターフェースとして使います。通常の電卓とは操作方法が異なります。</p>
+      <h3>基本的な使い方</h3>
+      <p>そろばんに数値を置き、<strong>✓</strong>を押して記録します。✓を押してもそろばんは<em>自動的にリセットされません</em> — 次の数値をそのまま置いてください。</p>
+      <h3>足し算・引き算（自動モード）</h3>
+      <ul>
+        <li>最初の数値を置く → <strong>✓</strong></li>
+        <li>次の数値になるようそろばんを変える → <strong>✓</strong></li>
+        <li>テープは連続する2つの✓の<em>差</em>を自動記録します（増加なら＋、減少なら－）。</li>
+      </ul>
+      <h3>掛け算</h3>
+      <p>そろばんの技法では、右から左へ桁ごとに被乗数Aを積で<strong>順次置き換えます</strong>。</p>
+      <p><em>例：47 × 6</em></p>
+      <ol>
+        <li>そろばんに<strong>47</strong>を置く → <strong>✓</strong>（テープに<code>+ 47</code>を記録）</li>
+        <li><strong>×</strong>をクリック — ボタンが点灯し、A = 47 を記憶</li>
+        <li>そろばんで計算：<br>
+          — 一の位：7 × 6 = <strong>42</strong> → 7を消して42を加算（そろばん = 82）<br>
+          — 十の位：4 × 6 = <strong>24</strong> → 十の位の4を消して24を加算（そろばん = <strong>282</strong>）</li>
+        <li>そろばんが282を表示 → <strong>✓</strong></li>
+        <li>アプリが係数を計算：282 ÷ 47 = 6 → テープに<code>47 × 6</code>を表示</li>
+      </ol>
+      <p>⚠️ <strong>× をクリックする前に</strong>そろばんにAの値を表示させてください — 0の場合はエラーが表示されます。</p>
+      <h3>割り算</h3>
+      <p>逆の操作：Aを置き、そろばんで割り算をして、B（商）を確定します。</p>
+      <p><em>例：282 ÷ 6</em></p>
+      <ol>
+        <li>そろばんに<strong>282</strong>を置く → <strong>✓</strong>（テープに<code>+ 282</code>を記録）</li>
+        <li><strong>÷</strong>をクリック — A = 282 を記憶</li>
+        <li>そろばんで計算：<br>
+          — 2 ÷ 6は不可：十の位に繰り上げ → 28 ÷ 6 = 4 余り4<br>
+          — 十の位に4を置き、一の位は42 → 42 ÷ 6 = 7<br>
+          — そろばん = <strong>47</strong></li>
+        <li>そろばんが47を表示 → <strong>✓</strong></li>
+        <li>アプリが除数を計算：282 ÷ 47 = 6 → テープに<code>282 ÷ 6</code>を表示</li>
+      </ol>
+      <p>⚠️ そろばんの割り算は最も難しい技法です — まず簡単な例で練習してください！</p>
+      <h3>その他のボタン</h3>
+      <ul>
+        <li><strong>↺</strong> — 直前の✓を取り消す（そろばんを一つ前の状態に戻す）</li>
+        <li><strong>計算結果</strong> — 合計付きの計算テープを表示</li>
+        <li><strong>リセット</strong> — そろばんとテープをゼロにする（テープに記録がある場合は確認を求める）</li>
+        <li><strong>👁 / 🙈</strong> — 数値の表示・非表示を切り替える</li>
+      </ul>
+      <p class="sig">CilMac &amp; Claude Sonnet 4.6 · 2026年3月</p>`,
+    opErrorZero:  '× または ÷ を選ぶ前に、まずそろばんにAの値を置いてください（現在0）',
+    opErrorMulA0: 'A = 0：掛け算はできません',
+    opErrorMulB0: '結果が0：そろばんを確認してください',
+    opErrorDivA0: 'A = 0：割り算はできません',
+    opErrorDivB0: '結果が0：そろばんを確認してください',
+    tapeEmpty:    '記録された操作はありません',
+    langFlag:     '🇫🇷',
+    numLocale:    'ja-JP',
+  }
+};
+
+// Formatage des nombres — séparateurs explicites, indépendants de la locale iOS
+function formatNum(n) {
+  const neg  = n < 0;
+  const abs  = Math.abs(n);
+  const parts = String(abs).split('.');
+  const sep   = currentLang === 'fr' ? String.fromCharCode(0x202F) : ',';  // espace fine FR, virgule JP
+  const dec   = currentLang === 'fr' ? ','                          : '.';  // décimale
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, sep);
+  return (neg ? '−' : '') + parts.join(dec);
+}
+
+function toggleLang() {
+  currentLang = currentLang === 'fr' ? 'jp' : 'fr';
+  applyLang();
+}
+
+function applyLang() {
+  const L = LANG[currentLang];
+  const $  = id => document.getElementById(id);
+  const setHTML = (id, html) => { const e=$(id); if(e) e.innerHTML = html; };
+  const setText = (id, txt)  => { const e=$(id); if(e) e.textContent = txt; };
+
+  // Bouton langue : activer le bon drapeau
+  const frEl = $('lang-fr');
+  const jpEl = $('lang-jp');
+  if (frEl && jpEl) {
+    frEl.classList.toggle('lang-active', currentLang === 'fr');
+    jpEl.classList.toggle('lang-active', currentLang === 'jp');
+  }
+
+  setHTML('rotate-text',     L.rotateTip);
+  setText('raz-btn',         L.razBtn);
+  setText('resultat-btn',    L.resultatBtn);
+  setText('tape-title',      L.tapeTitleTxt);
+  setText('tape-close-btn',  L.tapeClose);
+  setText('info-title',      L.infoTitle);
+  setHTML('info-body',       L.infoHtml);
+  setText('info-close-btn',  L.infoClose);
+  setHTML('raz-confirm-text',L.razConfirm);
+  setText('raz-cancel-btn',  L.razCancel);
+
+  // Rafraîchit l'affichage de la valeur et la tape si ouverte
+  updateVal();
+  if ($('tape-overlay')?.classList.contains('open')) showTape();
+}
+
+// ════════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════════
+initState();
+calcSnapshot = 0;
+checkOrientation();
+
+// showVersion (bouton invisible en bas)
+function showVersion() {
+  alert('URL : ' + location.href + '\nVersion : 2026-03-15 16:45');
+}
+</script>
+
+<!-- Version invisible -->
+<button onclick="showVersion()" style="position:fixed;bottom:0;right:0;background:none;border:none;color:transparent;font-size:.4rem;cursor:pointer;padding:2px 4px;user-select:none;">v</button>
+
+<!-- Modale confirmation RAZ -->
+<div id="raz-overlay" onclick="if(event.target===this)closeRAZConfirm()"
+     style="display:none;position:fixed;inset:0;background:rgba(10,5,2,.82);backdrop-filter:blur(6px);z-index:9000;align-items:center;justify-content:center;">
+  <div style="background:#f5f0e8;border-radius:10px;padding:22px 28px 18px;max-width:80vw;
+              box-shadow:0 8px 40px rgba(0,0,0,.6);font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;text-align:center;">
+    <div style="font-size:.92rem;font-weight:bold;color:#3a2010;margin-bottom:14px;" id="raz-confirm-text">Effacer le boulier et toute la bande ?</div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button class="tape-btn tape-btn-close" onclick="confirmRAZ()">OK</button>
+      <button class="tape-btn" id="raz-cancel-btn" onclick="closeRAZConfirm()"
+              style="background:transparent;color:#9a6040;border:1px solid rgba(100,60,20,.3);">Annuler</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
