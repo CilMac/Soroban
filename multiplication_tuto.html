@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soroban — La Multiplication</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Shippori+Mincho:wght@400;500;600&family=Noto+Serif+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --wood:    #c8854a;
+  --wood-dk: #3a2010;
+  --wood-lt: #e8d5b8;
+  --bg:      #f5ede0;
+  --parch:   #fdf6e8;
+  --ink:     #2a1a08;
+  --muted:   #7a5c3a;
+  --teal:    #1d9e75;
+  --teal-lt: #d4f0e6;
+  --purple:  #7f77dd;
+  --purp-lt: #eeedfe;
+  --amber:   #ba7517;
+  --amb-lt:  #faeeda;
+  --coral:   #d85a30;
+  --cor-lt:  #faeae4;
+  --gray:    #888780;
+  --gray-lt: #f1efe8;
+  --bead-h:  14px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Shippori Mincho', serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+/* ── TEXTURE ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0;
+}
+
+/* ── LAYOUT ── */
+.wrap {
+  position: relative; z-index: 1;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+/* ── HEADER ── */
+header { text-align: center; margin-bottom: 48px; }
+
+.jp-title {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 13px; letter-spacing: 0.3em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(36px, 6vw, 56px);
+  line-height: 1.1;
+  color: var(--wood-dk);
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: clamp(16px, 2.5vw, 20px);
+  color: var(--wood);
+}
+
+.divider {
+  display: flex; align-items: center; gap: 16px;
+  margin: 24px auto; max-width: 400px;
+}
+.divider::before, .divider::after {
+  content: ''; flex: 1;
+  height: 1px; background: var(--wood);
+  opacity: 0.4;
+}
+.divider span { color: var(--wood); font-size: 18px; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--parch);
+  border: 1px solid rgba(200,133,74,0.25);
+  border-radius: 16px;
+  padding: 28px 32px;
+  margin-bottom: 28px;
+  box-shadow: 0 2px 12px rgba(58,32,16,0.07);
+}
+
+.card-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  color: var(--wood-dk);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.card-title .num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px;
+  background: var(--wood);
+  color: white;
+  border-radius: 50%;
+  font-family: 'Shippori Mincho', serif;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* ── PRINCIPLE DIAGRAM ── */
+.principle-row {
+  display: flex; align-items: stretch; gap: 0;
+  border-radius: 10px; overflow: hidden;
+  border: 1px solid rgba(200,133,74,0.2);
+}
+
+.pbox {
+  flex: 1; padding: 14px 12px; text-align: center;
+}
+
+.pbox .label {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 11px; letter-spacing: 0.1em;
+  margin-bottom: 6px;
+  opacity: 0.75;
+}
+
+.pbox .val {
+  font-family: 'DM Serif Display', serif;
+  font-size: 26px;
+}
+
+.pbox-sep {
+  display: flex; align-items: center;
+  padding: 0 8px;
+  font-size: 20px;
+  color: var(--muted);
+  background: transparent;
+}
+
+.pbox.mult   { background: rgba(29,158,117,0.12); }
+.pbox.multi  { background: rgba(127,119,221,0.12); }
+.pbox.result { background: rgba(186,117,23,0.12); }
+
+.pbox.mult .val   { color: var(--teal); }
+.pbox.multi .val  { color: var(--purple); }
+.pbox.result .val { color: var(--amber); }
+
+/* ── RÈGLE POSITION ── */
+.rule-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.rule-box {
+  padding: 12px 10px; border-radius: 8px;
+  text-align: center;
+  border: 1px solid rgba(0,0,0,0.07);
+}
+
+.rule-box .r-num {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px; margin-bottom: 4px;
+}
+
+.rule-box .r-txt {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 11px; line-height: 1.5; opacity: 0.75;
+}
+
+.rule-box.r1 { background: var(--purp-lt); }
+.rule-box.r1 .r-num { color: var(--purple); }
+.rule-box.r2 { background: var(--teal-lt); }
+.rule-box.r2 .r-num { color: var(--teal); }
+.rule-box.r3 { background: var(--amb-lt); }
+.rule-box.r3 .r-num { color: var(--amber); }
+
+/* ── BOULIER SVG ── */
+.abacus-wrap {
+  background: linear-gradient(135deg, #e8d8c0 0%, #d6c9b0 100%);
+  border-radius: 12px;
+  border: 2px solid var(--wood-dk);
+  padding: 12px;
+  margin: 16px 0;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.12), 0 4px 16px rgba(58,32,16,0.15);
+}
+
+/* ── STEPPER ── */
+.step-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px; flex-wrap: wrap; gap: 10px;
+}
+
+.step-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 20px; color: var(--wood-dk);
+}
+
+.dots {
+  display: flex; gap: 6px; align-items: center;
+}
+
+.dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: rgba(200,133,74,0.3);
+  transition: background 0.3s, transform 0.3s;
+  cursor: pointer;
+}
+
+.dot.active {
+  background: var(--wood);
+  transform: scale(1.3);
+}
+
+.step-nav {
+  display: flex; gap: 10px; margin-top: 16px;
+  justify-content: space-between;
+}
+
+.btn {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 14px;
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(200,133,74,0.4);
+  background: var(--parch);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.btn:hover { background: var(--amb-lt); border-color: var(--wood); }
+.btn:disabled { opacity: 0.3; cursor: default; }
+.btn.primary {
+  background: var(--wood);
+  color: white; border-color: var(--wood-dk);
+}
+.btn.primary:hover { background: var(--wood-dk); }
+
+/* ── LEGEND ── */
+.legend {
+  margin-top: 14px;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.5);
+  border-radius: 10px;
+  border-left: 3px solid var(--wood);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.legend strong { color: var(--wood-dk); }
+
+.tag {
+  display: inline-block;
+  padding: 1px 8px; border-radius: 4px;
+  font-size: 12px; font-weight: 500;
+  margin: 0 2px;
+}
+
+.tag-t  { background: var(--teal-lt);  color: var(--teal); }
+.tag-p  { background: var(--purp-lt);  color: var(--purple); }
+.tag-a  { background: var(--amb-lt);   color: var(--amber); }
+.tag-c  { background: var(--cor-lt);   color: var(--coral); }
+
+/* ── FORMULA ── */
+.formula-row {
+  display: flex; flex-wrap: wrap; gap: 12px;
+  margin: 16px 0;
+  align-items: center;
+}
+
+.formula-chip {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: 'DM Serif Display', serif;
+  font-size: 17px;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+.formula-chip.active {
+  box-shadow: 0 0 0 2px var(--wood);
+}
+
+.op { font-size: 18px; color: var(--muted); align-self: center; }
+
+/* ── NOTE BOX ── */
+.note {
+  background: rgba(186,117,23,0.08);
+  border: 1px solid rgba(186,117,23,0.25);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+  margin-top: 10px;
+}
+
+.note .note-head {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 11px; letter-spacing: 0.15em;
+  color: var(--amber);
+  margin-bottom: 4px;
+}
+
+/* ── CUSTOM EXAMPLE ── */
+.input-row {
+  display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;
+  margin-bottom: 16px;
+}
+
+.input-group { display: flex; flex-direction: column; gap: 4px; }
+
+.input-group label {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 11px; letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+.input-group input {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  width: 90px; height: 48px;
+  text-align: center;
+  border: 1px solid rgba(200,133,74,0.4);
+  border-radius: 8px;
+  background: var(--parch);
+  color: var(--ink);
+  outline: none;
+}
+
+.input-group input:focus {
+  border-color: var(--wood);
+  box-shadow: 0 0 0 3px rgba(200,133,74,0.15);
+}
+
+/* ── STEPS MINI TABLE ── */
+.mini-steps { width: 100%; border-collapse: collapse; margin-top: 12px; }
+.mini-steps th {
+  background: rgba(200,133,74,0.15);
+  padding: 6px 10px;
+  font-family: 'Noto Serif JP', serif;
+  font-size: 11px; letter-spacing: 0.1em;
+  color: var(--muted);
+  text-align: left; border-radius: 4px;
+}
+.mini-steps td {
+  padding: 7px 10px;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(200,133,74,0.12);
+}
+.mini-steps td:first-child { font-family: 'DM Serif Display', serif; font-size: 16px; }
+.mini-steps tr:hover td { background: rgba(200,133,74,0.06); }
+
+/* ── FOOTER ── */
+footer {
+  text-align: center;
+  margin-top: 48px;
+  font-family: 'Noto Serif JP', serif;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 560px) {
+  .principle-row { flex-direction: column; }
+  .pbox-sep { transform: rotate(90deg); padding: 4px 0; text-align: center; }
+  .rule-row { grid-template-columns: 1fr; }
+  .card { padding: 20px 16px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ══════════════════════ HEADER ══════════════════════ -->
+<header>
+  <div class="jp-title">そろばん &nbsp;·&nbsp; 掛け算</div>
+  <h1>La Multiplication<br>au Soroban</h1>
+  <div class="subtitle">Guide interactif pas à pas</div>
+  <div class="divider"><span>✦</span></div>
+</header>
+
+<!-- ══════════════════════ CARD 1 : PRINCIPE ══════════════════════ -->
+<div class="card">
+  <div class="card-title"><span class="num">1</span> Principe général</div>
+
+  <div class="principle-row">
+    <div class="pbox mult">
+      <div class="label">MULTIPLICATEUR</div>
+      <div class="val">37</div>
+      <div style="font-size:12px;margin-top:4px;opacity:0.6">à gauche</div>
+    </div>
+    <div class="pbox-sep">×</div>
+    <div class="pbox multi">
+      <div class="label">MULTIPLICANDE</div>
+      <div class="val">54</div>
+      <div style="font-size:12px;margin-top:4px;opacity:0.6">au milieu</div>
+    </div>
+    <div class="pbox-sep">=</div>
+    <div class="pbox result">
+      <div class="label">RÉSULTAT</div>
+      <div class="val">1 998</div>
+      <div style="font-size:12px;margin-top:4px;opacity:0.6">se construit à droite</div>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:16px">
+    <div class="note-head">DÉCOMPOSITION — DEUX BOUCLES IMBRIQUÉES</div>
+    54 × 37 = <strong>(4 × 37) + (50 × 37)</strong><br><br>
+    <strong>① Boucle externe — le multiplicande</strong>, chiffre par chiffre <strong>de droite à gauche</strong> :<br>
+    &nbsp;&nbsp;→ d'abord les unités <strong>4</strong>, puis les dizaines <strong>5</strong>.<br>
+    <em style="font-size:12px;opacity:.75">Attention : c'est l'inverse de l'addition, où l'on part de gauche !</em><br><br>
+    <strong>② Boucle interne — le multiplicateur</strong>, pour chaque chiffre ci-dessus, de <strong>gauche à droite</strong> :<br>
+    &nbsp;&nbsp;→ d'abord les dizaines <strong>3</strong>, puis les unités <strong>7</strong>.<br><br>
+    Ce sens (gauche→droite pour le multiplicateur) place les <em>dizaines en premier</em> :
+    chaque produit partiel se décale automatiquement d'une tige vers la gauche,
+    et les résultats successifs s'accumulent au bon endroit sans jamais se chevaucher.
+  </div>
+
+  <p style="margin-top:16px;font-family:'Noto Serif JP';font-size:12px;letter-spacing:.1em;color:var(--muted)">OÙ LIRE LE RÉSULTAT</p>
+  <div class="rule-row">
+    <div class="rule-box r1">
+      <div class="r-num">2ᵉ tige</div>
+      <div class="r-txt">Multiplicateur<br><strong>1 chiffre</strong></div>
+    </div>
+    <div class="rule-box r2">
+      <div class="r-num">3ᵉ tige</div>
+      <div class="r-txt">Multiplicateur<br><strong>2 chiffres</strong></div>
+    </div>
+    <div class="rule-box r3">
+      <div class="r-num">4ᵉ tige</div>
+      <div class="r-txt">Multiplicateur<br><strong>3 chiffres</strong></div>
+    </div>
+  </div>
+  <p style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center">
+    « à droite du chiffre des unités du multiplicande »
+  </p>
+</div>
+
+<!-- ══════════════════════ CARD 2 : BOULIER - LECTURE ══════════════════════ -->
+<div class="card">
+  <div class="card-title"><span class="num">2</span> Lire le boulier</div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <div style="background:var(--gray-lt);border-radius:10px;padding:14px;text-align:center">
+      <svg width="60" height="80" viewBox="0 0 60 80">
+        <line x1="30" y1="5" x2="30" y2="75" stroke="#3a2010" stroke-width="2"/>
+        <rect x="5" y="30" width="50" height="5" fill="#3a2010" rx="1"/>
+        <!-- bille haute active -->
+        <ellipse cx="30" cy="24" rx="18" ry="10" fill="#c8854a" stroke="#3a2010" stroke-width="1"/>
+        <!-- billes basses inactives -->
+        <ellipse cx="30" cy="50" rx="18" ry="10" fill="#d6c9b0" stroke="#aaa" stroke-width="0.5"/>
+        <ellipse cx="30" cy="65" rx="18" ry="10" fill="#d6c9b0" stroke="#aaa" stroke-width="0.5"/>
+      </svg>
+      <div style="font-family:'DM Serif Display';font-size:20px;color:var(--wood);margin-top:4px">= 5</div>
+      <div style="font-size:12px;color:var(--muted)">bille haute activée<br>(contre la barre)</div>
+    </div>
+    <div style="background:var(--gray-lt);border-radius:10px;padding:14px;text-align:center">
+      <svg width="60" height="80" viewBox="0 0 60 80">
+        <line x1="30" y1="5" x2="30" y2="75" stroke="#3a2010" stroke-width="2"/>
+        <rect x="5" y="30" width="50" height="5" fill="#3a2010" rx="1"/>
+        <!-- bille haute inactive -->
+        <ellipse cx="30" cy="12" rx="18" ry="10" fill="#d6c9b0" stroke="#aaa" stroke-width="0.5"/>
+        <!-- 3 billes basses actives -->
+        <ellipse cx="30" cy="38" rx="18" ry="10" fill="#c8854a" stroke="#3a2010" stroke-width="1"/>
+        <ellipse cx="30" cy="51" rx="18" ry="10" fill="#c8854a" stroke="#3a2010" stroke-width="1"/>
+        <ellipse cx="30" cy="64" rx="18" ry="10" fill="#c8854a" stroke="#3a2010" stroke-width="1"/>
+      </svg>
+      <div style="font-family:'DM Serif Display';font-size:20px;color:var(--wood);margin-top:4px">= 3</div>
+      <div style="font-size:12px;color:var(--muted)">3 billes basses activées<br>(contre la barre)</div>
+    </div>
+  </div>
+
+  <div class="note">
+    <div class="note-head">VALEUR D'UNE COLONNE</div>
+    Chaque colonne = 1 chiffre. <strong>Bille haute activée = +5</strong>, chaque <strong>bille basse activée = +1</strong>.
+    Une bille est « active » quand elle touche la barre centrale.
+    Exemple : bille haute + 2 billes basses = <strong>7</strong>.
+  </div>
+</div>
+
+<!-- ══════════════════════ CARD 3 : STEPPER ══════════════════════ -->
+<div class="card">
+  <div class="card-title"><span class="num">3</span> Exemple interactif — 54 × 37</div>
+
+  <div class="formula-row">
+    <div class="formula-chip" style="background:var(--purp-lt);color:var(--purple)">54</div>
+    <div class="op">×</div>
+    <div class="formula-chip" style="background:var(--teal-lt);color:var(--teal)">37</div>
+    <div class="op">=</div>
+    <div class="formula-chip" style="background:var(--amb-lt);color:var(--amber)">1 998</div>
+    <div style="flex:1"></div>
+    <div style="font-size:13px;color:var(--muted);align-self:center">
+      Décomposition : (4×37) + (50×37)
+    </div>
+  </div>
+
+  <!-- Légende des couleurs -->
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px;align-items:center">
+    <span style="font-family:'Noto Serif JP';font-size:11px;letter-spacing:.1em;color:var(--muted);margin-right:4px">LÉGENDE :</span>
+    <span style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;background:var(--teal-lt);font-size:13px;color:var(--teal)">
+      <svg width="16" height="10"><ellipse cx="8" cy="5" rx="7" ry="4" fill="#1D9E75"/></svg>
+      Multiplicateur (37)
+    </span>
+    <span style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;background:var(--purp-lt);font-size:13px;color:var(--purple)">
+      <svg width="16" height="10"><ellipse cx="8" cy="5" rx="7" ry="4" fill="#7F77DD"/></svg>
+      Multiplicande (54)
+    </span>
+    <span style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;background:var(--amb-lt);font-size:13px;color:var(--amber)">
+      <svg width="16" height="10"><ellipse cx="8" cy="5" rx="7" ry="4" fill="#BA7517"/></svg>
+      Résultat (s'accumule)
+    </span>
+    <span style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;background:var(--gray-lt);font-size:13px;color:var(--muted)">
+      <svg width="16" height="10"><ellipse cx="8" cy="5" rx="7" ry="4" fill="#ffffff" stroke="#b8a070" stroke-width="1"/></svg>
+      Billes non actives (écartées)
+    </span>
+  </div>
+
+  <div class="step-header">
+    <div class="step-title" id="stepTitle">Étape 1 / 7</div>
+    <div class="dots" id="dots"></div>
+  </div>
+
+  <div class="abacus-wrap">
+    <svg id="abacusSvg" width="100%" viewBox="0 0 780 310" style="display:block"></svg>
+  </div>
+
+  <div class="legend" id="legend"></div>
+
+  <div class="step-nav">
+    <button class="btn" id="prevBtn" onclick="go(-1)">← Précédent</button>
+    <button class="btn primary" id="nextBtn" onclick="go(1)">Suivant →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════ CARD 4 : EXEMPLE PERSONNALISÉ ══════════════════════ -->
+<div class="card">
+  <div class="card-title"><span class="num">4</span> Décompose ton propre calcul</div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:16px">
+    Entre un multiplicande (jusqu'à 3 chiffres) et un multiplicateur (1 ou 2 chiffres).
+    Les étapes de décomposition s'affichent automatiquement.
+  </p>
+
+  <div class="input-row">
+    <div class="input-group">
+      <label>MULTIPLICANDE</label>
+      <input type="number" id="inA" value="76" min="1" max="999" oninput="calcCustom()">
+    </div>
+    <div style="font-family:'DM Serif Display';font-size:28px;padding-bottom:8px;color:var(--muted)">×</div>
+    <div class="input-group">
+      <label>MULTIPLICATEUR</label>
+      <input type="number" id="inB" value="3" min="1" max="99" oninput="calcCustom()">
+    </div>
+    <div style="font-family:'DM Serif Display';font-size:28px;padding-bottom:8px;color:var(--muted)">=</div>
+    <div class="input-group">
+      <label>RÉSULTAT</label>
+      <div style="font-family:'DM Serif Display';font-size:28px;padding:8px 0;color:var(--amber)" id="customResult">228</div>
+    </div>
+  </div>
+
+  <div id="customSteps"></div>
+</div>
+
+<!-- ══════════════════════ CARD 5 : RÉCAP ══════════════════════ -->
+<div class="card">
+  <div class="card-title"><span class="num">5</span> La méthode en 4 gestes</div>
+
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
+    <div style="background:var(--gray-lt);border-radius:10px;padding:14px">
+      <div style="font-family:'DM Serif Display';font-size:32px;color:var(--wood-dk);margin-bottom:6px">①</div>
+      <div style="font-weight:600;margin-bottom:4px">Poser</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6">Multiplicateur à gauche, multiplicande au milieu.</div>
+    </div>
+    <div style="background:var(--teal-lt);border-radius:10px;padding:14px">
+      <div style="font-family:'DM Serif Display';font-size:32px;color:var(--teal);margin-bottom:6px">②</div>
+      <div style="font-weight:600;margin-bottom:4px">Multiplier</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6">Chiffre du multiplicande × chaque chiffre du multiplicateur (gauche→droite).</div>
+    </div>
+    <div style="background:var(--amb-lt);border-radius:10px;padding:14px">
+      <div style="font-family:'DM Serif Display';font-size:32px;color:var(--amber);margin-bottom:6px">③</div>
+      <div style="font-weight:600;margin-bottom:4px">Ajouter</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6">Placer le produit : 1ère tige à droite = dizaines du produit.</div>
+    </div>
+    <div style="background:var(--cor-lt);border-radius:10px;padding:14px">
+      <div style="font-family:'DM Serif Display';font-size:32px;color:var(--coral);margin-bottom:6px">④</div>
+      <div style="font-weight:600;margin-bottom:4px">Effacer</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6">Effacer le chiffre du multiplicande utilisé. Passer au suivant.</div>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:16px">
+    <div class="note-head">TABLE DE MULTIPLICATION</div>
+    La condition préalable : maîtriser la table de multiplication de mémoire.
+    Le soroban ne calcule pas — il <em>accumule</em>. C'est toi qui fournis les produits partiels.
+  </div>
+</div>
+
+<footer>CilMac &amp; Claude Sonnet 4.6 · mars 2026 v2 &nbsp;·&nbsp; そろばん掛け算</footer>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════════════ -->
+<script>
+/* ─── BOULIER ─────────────────────────────────────────────────── */
+const COLS = 13;  // nombre de colonnes
+const COL_W = 56; // espacement
+const OFFSET_X = 40;
+const SVG_H = 180;
+
+const COLORS = {
+  teal:   { fill:'#1D9E75', stroke:'#0F6E56' },
+  purple: { fill:'#7F77DD', stroke:'#534AB7' },
+  amber:  { fill:'#BA7517', stroke:'#854F0B' },
+  coral:  { fill:'#D85A30', stroke:'#993C1D' },
+  gray:   { fill:'#c8b89a', stroke:'#9a8060' },
+  empty:  { fill:'#e8dcc8', stroke:'#c4ad8c' },
+};
+
+function colX(i) { return OFFSET_X + i * COL_W; }
+
+function drawAbacus(svg, colData) {
+  const colMap = {};
+  colData.forEach(c => colMap[c.i] = c);
+
+  /* ── Géométrie ──────────────────────────────────────────
+     viewBox = 780 × 310
+     Labels colonnes  : y = 20
+     Cadre bois       : y = 26..282  (h=256)
+     Zone intérieure  : y = 38..272  (h=234)
+     Barre centrale   : y = 135
+     Zone haute (1 bille)  : 38..131  → inactive y=72, active y=117
+     Zone basse (4 billes) : 143..270 → actives espacées 26px, inactives en bas
+  ──────────────────────────────────────────────────────── */
+  const BAR_Y  = 135;
+  const RX = 19, RY = 12;
+
+  const TOP_INACTIVE = 72;
+  const TOP_ACTIVE   = BAR_Y - 18;
+  const BOT_ACTIVE   = k => BAR_Y + 18 + k * 26;
+  const BOT_INACTIVE = k => 258 - (3 - k) * 26;
+
+  const LABELS = ['A','B','C','D','E','F','G','H','I','J','K','L','M'];
+
+  let html = '';
+
+  /* Labels colonnes */
+  for(let i=0; i<COLS; i++){
+    html += `<text x="${colX(i)}" y="20" text-anchor="middle"
+      font-family="Shippori Mincho,serif" font-size="12"
+      fill="#7a5c3a" opacity="0.85">${LABELS[i]}</text>`;
+  }
+
+  /* Cadre bois */
+  html += `<rect x="10" y="26" width="760" height="256" rx="14" fill="#c8854a" stroke="#3a2010" stroke-width="2.5"/>`;
+  html += `<rect x="24" y="38" width="732" height="234" rx="8" fill="#d6c9b0" stroke="#3a2010" stroke-width="1"/>`;
+  html += `<rect x="24" y="${BAR_Y-4}" width="732" height="8" fill="#3a2010" rx="3"/>`;
+
+  for(let i=0; i<COLS; i++){
+    const x = colX(i);
+    html += `<line x1="${x}" y1="40" x2="${x}" y2="270" stroke="#3a2010" stroke-width="1.5"/>`;
+
+    const cfg   = colMap[i];
+    const color = cfg ? cfg.color : 'empty';
+    const c     = COLORS[color] || COLORS.empty;
+    const topAct = cfg ? !!cfg.topActive       : false;
+    const botAct = cfg ? (cfg.bottomActive||0) : 0;
+
+    const fAct = c.fill, sAct = c.stroke;
+    const fIn  = '#ffffff', sIn = '#b8a070';
+
+    /* Bille haute */
+    const ty = topAct ? TOP_ACTIVE : TOP_INACTIVE;
+    html += `<ellipse cx="${x}" cy="${ty}" rx="${RX}" ry="${RY}"
+      fill="${topAct?fAct:fIn}" stroke="${topAct?sAct:sIn}"
+      stroke-width="${topAct?1.5:1}"/>`;
+
+    /* 4 billes basses */
+    for(let k=0; k<4; k++){
+      const act = k < botAct;
+      const y   = act ? BOT_ACTIVE(k) : BOT_INACTIVE(k);
+      html += `<ellipse cx="${x}" cy="${y}" rx="${RX}" ry="${RY}"
+        fill="${act?fAct:fIn}" stroke="${act?sAct:sIn}"
+        stroke-width="${act?1.5:1}"/>`;
+    }
+  }
+  svg.innerHTML = html;
+}
+
+/* ─── ÉTAPES 54 × 37 ─────────────────────────────────────────── */
+/*
+  Colonnes utilisées :
+  i=0,1 : vides (marge gauche)
+  i=2   : multiplicateur dizaines (3)
+  i=3   : multiplicateur unités  (7)
+  i=4   : séparateur vide
+  i=5   : multiplicande dizaines (5)
+  i=6   : multiplicande unités  (4)
+  i=7,8,9,10 : zone résultat
+*/
+
+const STEPS = [
+  {
+    title: 'Étape 1 — Poser le problème',
+    cols: [
+      {i:2, topActive:false, bottomActive:3, color:'teal'},    // 3
+      {i:3, topActive:true,  bottomActive:2, color:'teal'},    // 7 = 5+2
+      {i:5, topActive:true,  bottomActive:0, color:'purple'},  // 5
+      {i:6, topActive:false, bottomActive:4, color:'purple'},  // 4
+    ],
+    legend: `
+      <span class="tag tag-t">37</span> Multiplicateur, à gauche &nbsp;|&nbsp;
+      <span class="tag tag-p">54</span> Multiplicande, au milieu &nbsp;|&nbsp;
+      Zone résultat vide à droite.<br>
+      <strong>37</strong> = col. C (3 billes basses) + col. D (bille haute 5 + 2 billes basses = 7).<br>
+      <strong>54</strong> = col. F (bille haute = 5) + col. G (4 billes basses = 4).`
+  },
+  {
+    title: 'Étape 2 — 4 × 3 = 12',
+    cols: [
+      {i:2, topActive:false, bottomActive:3, color:'teal'},
+      {i:3, topActive:true,  bottomActive:2, color:'teal'},
+      {i:5, topActive:true,  bottomActive:0, color:'purple'},
+      {i:6, topActive:false, bottomActive:4, color:'purple'},
+      {i:7, topActive:false, bottomActive:1, color:'amber'},   // +1 dizaine
+      {i:8, topActive:false, bottomActive:2, color:'amber'},   // +2 unités
+    ],
+    legend: `
+      Unités de 54 (= <strong>4</strong>) × dizaines de 37 (= <strong>3</strong>) : <strong>4 × 3 = 12</strong>.<br>
+      On place <span class="tag tag-a">12</span> : la <strong>1ère tige à droite</strong> du chiffre 4 (col. G) reçoit la <strong>dizaine</strong> (+1),
+      la <strong>2ème tige</strong> reçoit l'<strong>unité</strong> (+2).`
+  },
+  {
+    title: 'Étape 3 — 4 × 7 = 28',
+    cols: [
+      {i:2, topActive:false, bottomActive:3, color:'teal'},
+      {i:3, topActive:true,  bottomActive:2, color:'teal'},
+      {i:5, topActive:true,  bottomActive:0, color:'purple'},
+      {i:6, topActive:false, bottomActive:4, color:'purple'},
+      {i:7, topActive:false, bottomActive:1, color:'amber'},   // H=1 (inchangé)
+      {i:8, topActive:false, bottomActive:4, color:'amber'},   // I=4 (2+2=4)
+      {i:9, topActive:true,  bottomActive:3, color:'amber'},   // J=8
+    ],
+    legend: `
+      Unités de 54 (= <strong>4</strong>) × unités de 37 (= <strong>7</strong>) : <strong>4 × 7 = 28</strong>.<br>
+      2ème chiffre du multiplicateur → on avance d'1 tige. Tige de départ = col. I :<br>
+      col. I : 2+2 = <strong>4</strong> (dizaine de 28) &nbsp;|&nbsp; col. J : 0+8 = <strong>8</strong> (unité de 28).<br>
+      Produit intermédiaire 4×37 = <span class="tag tag-a">148</span> (H=1, I=4, J=8)`
+  },
+  {
+    title: 'Étape 4 — Effacer le "4"',
+    cols: [
+      {i:2, topActive:false, bottomActive:3, color:'teal'},
+      {i:3, topActive:true,  bottomActive:2, color:'teal'},
+      {i:5, topActive:true,  bottomActive:0, color:'purple'},
+      // col G (i=6) effacée → empty
+      {i:7, topActive:false, bottomActive:3, color:'amber'},
+      {i:8, topActive:true,  bottomActive:3, color:'amber'},
+    ],
+    legend: `
+      On <strong>efface</strong> le chiffre <strong>4</strong> (col. G) — toutes ses billes s'écartent.<br>
+      Rappel des deux boucles : le multiplicande se traite <strong>de droite à gauche</strong> (unités → dizaines) —
+      à l'inverse de l'addition — et le multiplicateur <strong>de gauche à droite</strong> (dizaines → unités).
+      Le produit partiel 148 reste intact.`
+  },
+  {
+    title: 'Étape 5 — 5 × 3 = 15',
+    cols: [
+      {i:2, topActive:false, bottomActive:3, color:'teal'},
+      {i:3, topActive:true,  bottomActive:2, color:'teal'},
+      {i:5, topActive:true,  bottomActive:0, color:'purple'},
+      {i:6, topActive:false, bottomActive:1, color:'amber'},   // G=1 (millier)
+      {i:7, topActive:true,  bottomActive:1, color:'amber'},   // H=6
+      {i:8, topActive:false, bottomActive:4, color:'amber'},   // I=4
+      {i:9, topActive:true,  bottomActive:3, color:'amber'},   // J=8
+    ],
+    legend: `
+      Dizaines de 54 (= <strong>5</strong>) × dizaines de 37 (= <strong>3</strong>) : <strong>5 × 3 = 15</strong>.<br>
+      1ère tige à droite du 5 (col. F) = col. G : dizaine de 15 (+1) → col. G ; unité (+5) → col. H.<br>
+      Col. G passe à <strong>1</strong>, col. H : 1+5 = <strong>6</strong>. Le boulier affiche maintenant <span class="tag tag-a">1 648</span>.<br>
+      <em style="font-size:12px;opacity:.75">Le millier apparaît dès ici : G=1 représente déjà le 1 de 1 998.</em>`
+  },
+  {
+    title: 'Étape 6 — 5 × 7 = 35, puis effacer "5"',
+    cols: [
+      {i:2, topActive:false, bottomActive:3, color:'teal'},
+      {i:3, topActive:true,  bottomActive:2, color:'teal'},
+      // col F (i=5) effacée
+      {i:6, topActive:false, bottomActive:1, color:'amber'},   // G=1 (millier, inchangé)
+      {i:7, topActive:true,  bottomActive:4, color:'amber'},   // H=9
+      {i:8, topActive:true,  bottomActive:4, color:'amber'},   // I=9
+      {i:9, topActive:true,  bottomActive:3, color:'amber'},   // J=8
+    ],
+    legend: `
+      Dizaines de 54 (= <strong>5</strong>) × unités de 37 (= <strong>7</strong>) : <strong>5 × 7 = 35</strong>.<br>
+      Tige de départ = col. H : dizaine de 35 (+3) → H : 6+3 = <strong>9</strong> ; unité (+5) → I : 4+5 = <strong>9</strong>.<br>
+      On efface le <strong>5</strong> (col. F). Le boulier affiche <span class="tag tag-a">1 998</span> — le résultat est complet.<br>
+      <em style="font-size:12px;opacity:.75">Le millier (G=1) était déjà en place depuis l'étape 5.</em>`
+  },
+  {
+    title: '✓ Résultat final : 54 × 37 = 1 998',
+    cols: [
+      {i:6,  topActive:false, bottomActive:1, color:'amber'},   // G=1 (millier)
+      {i:7,  topActive:true,  bottomActive:4, color:'amber'},   // H=9
+      {i:8,  topActive:true,  bottomActive:4, color:'amber'},   // I=9
+      {i:9,  topActive:true,  bottomActive:3, color:'amber'},   // J=8
+    ],
+    legend: `
+      Le boulier affiche <strong>1 998</strong> ✓<br>
+      Col. G : 1 (millier) &nbsp;·&nbsp; Col. H : 9 (centaines) &nbsp;·&nbsp; Col. I : 9 (dizaines) &nbsp;·&nbsp; Col. J : 8 (unités).<br>
+      Le résultat se lit à partir de la <strong>3ème tige à droite du multiplicande</strong> (règle : multiplicateur à 2 chiffres).<br>
+      Les colonnes du multiplicateur (C, D) sont restées <strong>inchangées</strong> tout au long du calcul.`
+  },
+];
+
+let cur = 0;
+
+function renderStep() {
+  const s = STEPS[cur];
+  document.getElementById('stepTitle').textContent = `Étape ${cur+1} / ${STEPS.length}`;
+  document.getElementById('legend').innerHTML = s.legend;
+  document.getElementById('prevBtn').disabled = cur === 0;
+  document.getElementById('nextBtn').textContent = cur === STEPS.length-1 ? '← Recommencer' : 'Suivant →';
+
+  // Dots
+  const dotsEl = document.getElementById('dots');
+  dotsEl.innerHTML = STEPS.map((_,i) =>
+    `<span class="dot${i===cur?' active':''}" onclick="go(${i-cur})" title="Étape ${i+1}"></span>`
+  ).join('');
+
+  // Draw
+  const svg = document.getElementById('abacusSvg');
+  drawAbacus(svg, s.cols);
+}
+
+function go(d) {
+  if (cur + d < 0 || cur + d >= STEPS.length) {
+    if (cur === STEPS.length-1) { cur = 0; renderStep(); }
+    return;
+  }
+  cur += d;
+  renderStep();
+}
+
+/* ─── EXEMPLE PERSONNALISÉ ─────────────────────────────────────── */
+function calcCustom() {
+  const a = parseInt(document.getElementById('inA').value) || 0;
+  const b = parseInt(document.getElementById('inB').value) || 0;
+  const result = a * b;
+  document.getElementById('customResult').textContent = result.toLocaleString('fr-FR');
+
+  const aStr = String(a);
+  const bStr = String(b);
+
+  // Générer les étapes de décomposition
+  let rows = '';
+  let cumul = 0;
+
+  // On traite chaque chiffre de 'a' de droite à gauche
+  for (let ai = aStr.length - 1; ai >= 0; ai--) {
+    const digitA = parseInt(aStr[ai]);
+    const placeA = Math.pow(10, aStr.length - 1 - ai);
+
+    // On multiplie par chaque chiffre de 'b' de gauche à droite
+    for (let bi = 0; bi < bStr.length; bi++) {
+      const digitB = parseInt(bStr[bi]);
+      const placeB = Math.pow(10, bStr.length - 1 - bi);
+      const partiel = digitA * digitB * placeA * placeB;
+      cumul += partiel;
+
+      const op = `${digitA * placeA} × ${digitB * placeB}`;
+      const prod = digitA * digitB;
+      rows += `<tr>
+        <td>${op}</td>
+        <td>${digitA} × ${digitB} = ${prod} → on place <strong>${prod < 10 ? '0'+prod : prod}</strong></td>
+        <td>+${partiel.toLocaleString('fr-FR')}</td>
+        <td>${cumul.toLocaleString('fr-FR')}</td>
+      </tr>`;
+    }
+  }
+
+  const tigs = bStr.length + 1;
+
+  document.getElementById('customSteps').innerHTML = `
+    <table class="mini-steps">
+      <thead><tr>
+        <th>Opération</th>
+        <th>Produit partiel</th>
+        <th>+Valeur</th>
+        <th>Cumulé</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="note" style="margin-top:12px">
+      Résultat sur la <strong>${tigs}ème tige</strong> à droite du multiplicande
+      (multiplicateur à ${bStr.length} chiffre${bStr.length>1?'s':''}).
+    </div>`;
+}
+
+/* ─── INIT ─────────────────────────────────────────────────────── */
+renderStep();
+calcCustom();
+</script>
+</body>
+</html>
